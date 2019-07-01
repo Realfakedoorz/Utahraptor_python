@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.5.0-0-g9aa0fdb  Build Version: 1.5.7004.21443
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="Latest">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.00122383806382909 -3.17942980033395E-17 0.0659595203814596"
+        rpy="0 0 0" />
+      <mass
+        value="244.9329927506" />
+      <inertia
+        ixx="5.55262025860006"
+        ixy="8.97904351947736E-16"
+        ixz="-0.000394714970341267"
+        iyy="5.44179501990665"
+        iyz="-2.98538984124279E-16"
+        izz="10.2631638380994" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Femur_L">
+    <inertial>
+      <origin
+        xyz="0.242203107830059 -0.00284577498225344 0.0924919582228952"
+        rpy="0 0 0" />
+      <mass
+        value="1.0956267569314" />
+      <inertia
+        ixx="0.000770809917908147"
+        ixy="0.000413272308722677"
+        ixz="-0.00199415247363703"
+        iyy="0.0359395923546767"
+        iyz="2.34305677777084E-05"
+        izz="0.0354701341892382" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Femur_L.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Femur_L.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Hip_femur_L"
+    type="continuous">
+    <origin
+      xyz="-0.0385868696304645 0.18 0.0672852031451373"
+      rpy="-1.5707963267949 1.50458688118117 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="Femur_L" />
+    <axis
+      xyz="0 0 1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Tibia_L">
+    <inertial>
+      <origin
+        xyz="0.261668636750511 -0.00305413840682147 -0.0239999991276169"
+        rpy="0 0 0" />
+      <mass
+        value="0.837833351696081" />
+      <inertia
+        ixx="0.000224729291285804"
+        ixy="0.000203159080373753"
+        ixz="8.62500209468083E-10"
+        iyy="0.0175133040900648"
+        iyz="1.47446822077673E-11"
+        izz="0.0175171715862385" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tibia_L.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tibia_L.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Femur_tibia_L"
+    type="continuous">
+    <origin
+      xyz="0.557961346760059 -0.00655865516646524 0.0770000001743604"
+      rpy="0 0 -0.00193315362723463" />
+    <parent
+      link="Femur_L" />
+    <child
+      link="Tibia_L" />
+    <axis
+      xyz="0 0 -1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Tarsa_L">
+    <inertial>
+      <origin
+        xyz="0.0302857093798252 -0.00810522006820646 0.070000040207787"
+        rpy="0 0 0" />
+      <mass
+        value="0.101531888424101" />
+      <inertia
+        ixx="2.83277886698444E-05"
+        ixy="2.16015495486522E-07"
+        ixz="6.83242656240328E-12"
+        iyy="4.67036221075615E-05"
+        iyz="6.07677246942435E-12"
+        izz="4.96436344707768E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tarsa_L.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tarsa_L.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Tibia_tarsa_L"
+    type="continuous">
+    <origin
+      xyz="0.507031720085334 -0.00595264631811062 -0.0469999948873179"
+      rpy="0 0 2.35013161415813" />
+    <parent
+      link="Tibia_L" />
+    <child
+      link="Tarsa_L" />
+    <axis
+      xyz="0 0 -1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Foot_L">
+    <inertial>
+      <origin
+        xyz="-0.134046955227231 -0.0400232687764869 -0.149551845220791"
+        rpy="0 0 0" />
+      <mass
+        value="0.834771497095713" />
+      <inertia
+        ixx="0.00329402342120859"
+        ixy="-0.00225499866549155"
+        ixz="4.00642090430854E-10"
+        iyy="0.0132217193918293"
+        iyz="2.89352006801103E-10"
+        izz="0.0109505994990664" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Foot_L.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Foot_L.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Tarsa_foot_L"
+    type="continuous">
+    <origin
+      xyz="0.0545835119848165 -0.00841169146295107 0.0929999850227678"
+      rpy="0 0 -0.0126879406929578" />
+    <parent
+      link="Tarsa_L" />
+    <child
+      link="Foot_L" />
+    <axis
+      xyz="0 0 0.999999999999996" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Femur_R">
+    <inertial>
+      <origin
+        xyz="0.242203107594868 -0.00284577821776227 -0.0924919582317857"
+        rpy="0 0 0" />
+      <mass
+        value="1.09562675424786" />
+      <inertia
+        ixx="0.000770809907869584"
+        ixy="0.00041327182718053"
+        ixz="0.00199415248143469"
+        iyy="0.0359395923291157"
+        iyz="-2.34302735430893E-05"
+        izz="0.0354701341468066" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Femur_R.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Femur_R.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Hips_femur_R"
+    type="continuous">
+    <origin
+      xyz="-0.0385868696304645 -0.18 0.0672852031451373"
+      rpy="-1.5707963267949 1.50458688118117 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="Femur_R" />
+    <axis
+      xyz="0 0 1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Tibia_R">
+    <inertial>
+      <origin
+        xyz="-0.261668641621138 -0.00305415187488046 -0.0239999993678786"
+        rpy="0 0 0" />
+      <mass
+        value="0.837833381982962" />
+      <inertia
+        ixx="0.000224729299568724"
+        ixy="-0.000203161324382621"
+        ixz="-9.6231507005878E-10"
+        iyy="0.0175133046826421"
+        iyz="-6.79629889802033E-11"
+        izz="0.0175171721226335" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tibia_R.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tibia_R.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Femur_tibia_R"
+    type="continuous">
+    <origin
+      xyz="0.557961346760059 -0.00655865516646524 -0.0770000001743603"
+      rpy="3.14159265358979 0 3.13965949996256" />
+    <parent
+      link="Femur_R" />
+    <child
+      link="Tibia_R" />
+    <axis
+      xyz="0 0 -1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Tarsa_R">
+    <inertial>
+      <origin
+        xyz="0.0302857093798253 -0.00810522006820635 -0.0700000402077869"
+        rpy="0 0 0" />
+      <mass
+        value="0.1015318884241" />
+      <inertia
+        ixx="2.83277886698443E-05"
+        ixy="2.16015495486543E-07"
+        ixz="-6.8324266020776E-12"
+        iyy="4.67036221075615E-05"
+        iyz="-6.07677249587479E-12"
+        izz="4.96436344707768E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tarsa_R.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Tarsa_R.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Tibia_tarsa_R"
+    type="continuous">
+    <origin
+      xyz="-0.507031720085334 -0.00595264631811062 -0.0469999948873179"
+      rpy="3.14159265358979 0 0.791461039431664" />
+    <parent
+      link="Tibia_R" />
+    <child
+      link="Tarsa_R" />
+    <axis
+      xyz="0 0 1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+  <link
+    name="Foot_R">
+    <inertial>
+      <origin
+        xyz="-0.134046955227231 -0.0400232687764865 0.149551845220791"
+        rpy="0 0 0" />
+      <mass
+        value="0.834771497095712" />
+      <inertia
+        ixx="0.00329402342120859"
+        ixy="-0.00225499866549155"
+        ixz="-4.00642090655849E-10"
+        iyy="0.0132217193918293"
+        iyz="-2.89352007983659E-10"
+        izz="0.0109505994990664" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Foot_R.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="Latest/meshes/Foot_R.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Tarsa_foot_R"
+    type="continuous">
+    <origin
+      xyz="0.0545835119848167 -0.00841169146295095 -0.0929999850227678"
+      rpy="0 0 -0.0126879406929579" />
+    <parent
+      link="Tarsa_R" />
+    <child
+      link="Foot_R" />
+    <axis
+      xyz="0 0 -0.999999999999996" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
+</robot>
