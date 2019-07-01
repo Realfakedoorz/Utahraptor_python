@@ -42,6 +42,7 @@ class dino3D():
         self.elitesfit = []
         self.epochnum = 0
         #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
+        rd.seed()
         
     ''' Thread scheduler '''
     def runthreads(self, cid):
@@ -521,7 +522,13 @@ class dino3D():
                     
                 if rd.rand() < rate:
                     self.population[i, 2, w] = rd.randint(-50,50)/(50/1.5)#Ts
-
+                
+                #Second sine parameters
+                if rd.rand() < rate:
+                    self.population[i, 3, w] = rd.randint(-50,50)
+                
+                if rd.rand() < rate:
+                    self.population[i, 4, w] = rd.randint(-50,50)/(50/1.5)#Ts
             #if rd.rand() < rate:
                 #self.popBodyOffsets[i] = rd.randint(0,360)
                 
@@ -529,21 +536,26 @@ class dino3D():
                         
     def generateWalk(self):
         ''' Generate 20 random sets of parameters '''
-        self.population = np.zeros([self.popsize,3,4])
+        self.population = np.zeros([self.popsize,5,4])
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
             for w in range(0,4):
-                self.population[d, 0, w] = rd.randint(0,360) #theta0xs
-                self.population[d, 1, w] = rd.randint(-50,50)#amplitudes
-                self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)#Ts
+                self.population[d, 0, w] = rd.randint(0,360) #a0
+                self.population[d, 1, w] = rd.randint(-50,50)#a1
+                self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)#T1
+                self.population[d, 3, w] = rd.randint(-50,50)#a2
+                self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)#T2
+            
             self.popBodyOffsets[d] = rd.randint(0,360)
             self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
       
     def fitnessWalk(self, popNum = 0):
-        legt0 = self.population[popNum, 0]
-        legamp = self.population[popNum, 1]
-        legT = self.population[popNum, 2]
+        legt0   = self.population[popNum, 0]
+        legamp  = self.population[popNum, 1]
+        legT    = self.population[popNum, 2]
+        legamp2 = self.population[popNum, 3]
+        legT2   = self.population[popNum, 4]
         #offSet = self.popBodyOffsets[popNum]
         T = 0.5
         
@@ -560,13 +572,17 @@ class dino3D():
         pencon = 0
         speed = 0
         sc = 0.25
-        
+        ''' Modify the fkine function for this '''
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
         if T>1.5: T=1.5
         for i in range(4000):
             if botPos[2] > 0.4 and botPos[2] < 2:
                 dur += 1
                 t = float(i)*(self.T_fixed)
+                
+                #legamp[0]*np.sin(legamp[0]) + sc*legamp2[]
+                
+                
                 angles = np.array([(legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T)),
                                 legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T),
                                 legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T),
@@ -642,7 +658,7 @@ class dino3D():
         if self.popsize == 0:
             self.popsize = 60
             self.fitnesses = np.zeros(self.popsize)
-            self.population = np.zeros([self.popsize,3,4])
+            self.population = np.zeros([self.popsize,5,4])
             self.popBodyOffsets = np.zeros(self.popsize)
              
             self.t0s = [0,0,0,0]
