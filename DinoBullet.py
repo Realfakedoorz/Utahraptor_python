@@ -787,10 +787,10 @@ class dino3D():
             self.botStartPos = self.scale*np.array([0.08300925547894937, 0.002430267340262286, 0.8458748281523655])
             botOrn = [3.940743050000044e-05, 0.02249885497625592, -0.004428984037646466, 0.9997370574667152]
             angles = np.array([ 51.96582967,  97.03677617,  70.47829377,  61.78680965,
-                               51.95977158, -97.04235016, -70.55186208, -61.87077155])*np.pi/180
+                               51.95977158, -97.04235016, -70.55186208, -61.87077155, 0])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
             
             self.AdjustCamera(botID = botId, cid = cid)
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
@@ -802,10 +802,11 @@ class dino3D():
             self.botStartPos = self.scale*np.array([0.041268085601263, 0.099768429873335, 1.1749753510013218])#was 1.2
             botOrn = [0.9813615231606528, 0.0009370188924839653, 0.19216827618774338, -0.00019100374330870658]
             angles = np.array([ 141.77655842,  332.53291582,   47.9706059 ,  159.23242504,
-                               141.78012687, -332.53399047,  -47.97753527, -159.23824605])*np.pi/180
+                               141.78012687, -332.53399047,  -47.97753527, -159.23824605, 0])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); np.append(angles, 0)
+            print(angles)
             
             self.AdjustCamera(botID = botId, cid = cid)
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
@@ -817,9 +818,10 @@ class dino3D():
             self.botStartPos = self.scale*np.array([0, 0, height])#was 1.2
             botOrn = [3.940743050000044e-05, 0.02249885497625592, -0.004428984037646466, 0.9997370574667152]
             angles = np.array(anglesset)*np.pi/180
+            np.append(angles, 0)
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
             
             self.AdjustCamera(botID = botId, cid = cid)
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
@@ -832,10 +834,10 @@ class dino3D():
             self.botStartPos = self.scale*np.array([-0.005423497042570174, -0.0006093378765514721, 0.9902877456256021])
             botOrn = [-5.9789883568907994e-05,  0.26071283829436115,  0.0001462250556024903,  0.9654163821853766]
             angles = np.array([ -43.        ,  -46.        ,  238.16050597,  154.93573783,
-        -43.        ,   46.        , -238.16050597, -154.93573783])*np.pi/180
+        -43.        ,   46.        , -238.16050597, -154.93573783, 0])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
             
             self.AdjustCamera(botID = botId, cid = cid)
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
