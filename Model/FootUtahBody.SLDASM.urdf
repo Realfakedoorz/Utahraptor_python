@@ -98,6 +98,7 @@
       link="Femur_L" />
     <axis
       xyz="0 0 1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -154,6 +155,7 @@
       link="Tibia_L" />
     <axis
       xyz="0 0 -1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -210,6 +212,7 @@
       link="Tarsa_L" />
     <axis
       xyz="0 0 -1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -266,6 +269,7 @@
       link="Foot_L" />
     <axis
       xyz="0 0 0.999999999999996" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -322,6 +326,7 @@
       link="Femur_R" />
     <axis
       xyz="0 0 1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -378,6 +383,7 @@
       link="Tibia_R" />
     <axis
       xyz="0 0 1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -434,6 +440,7 @@
       link="Tarsa_R" />
     <axis
       xyz="0 0 1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -490,6 +497,7 @@
       link="Foot_R" />
     <axis
       xyz="0 0 -0.999999999999996" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -545,6 +553,7 @@
       link="Tail" />
     <axis
       xyz="0 0 1" />
+    <limit effort="300" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>

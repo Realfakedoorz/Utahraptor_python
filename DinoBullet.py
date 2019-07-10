@@ -381,7 +381,6 @@ class dino3D():
         
         self.Torques = []
         
-        print(angles)
         for dur in range(0,1000):
             self.Step(1, sleep = 1, cid=cid, botID=botId)
             self.AdjustCamera(botID = botId, cid = cid)
@@ -566,7 +565,7 @@ class dino3D():
                 self.population[d, 4, w] = rd.randint(-100,50)/(100/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
+            self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
       
     def fitnessWalk(self, popNum = 0):
         legt0   = self.population[popNum, 0]
@@ -578,12 +577,11 @@ class dino3D():
         #offSet = self.popBodyOffsets[popNum]
         T = 0.5
         
-        simID,botId = self.setStanding(simtype = pb.DIRECT, num=5)
+        simID,botId = self.setStanding(simtype = pb.DIRECT, num=6)
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         heightDiff = botPos[2]-footLoc
-        
         
         dur = 0
         torpen = 0
@@ -595,7 +593,7 @@ class dino3D():
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
         if T>1.5: T=1.5
         for i in range(4000):
-            if botPos[2] > 0.4 and botPos[2] < 1.6:
+            if botPos[2] > 0.4 and botPos[2] < 1.6 and footLoc < 0.4:
                 dur += 1
                 t = float(i)*(self.T_fixed)
                 
@@ -625,7 +623,7 @@ class dino3D():
                     #self.setLegs(angles, sleep = 0, botID = botId, cid = simID)
                     
                 self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
-                
+                footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
                 
                 botPos, botOrn = pb.getBasePositionAndOrientation(botId)
                 lin_vel, ang_vel= pb.getBaseVelocity(botId) 
@@ -663,6 +661,8 @@ class dino3D():
             print("Managed {dur:f} seconds, T = {step:f}".format(dur=t, step=T))
             self.elites.append(self.population[popNum])
             self.showIm(simID, botID = botId)
+            with open('elites.dat', 'wb') as f:
+                        pickle.dump([self.elites], f)
         pb.disconnect(physicsClientId = simID)    
     
     def WalkingGA(self, epochs = 10):
@@ -713,7 +713,7 @@ class dino3D():
         #offSet = self.popBodyOffsets[popNum]
         T = 0.5
         
-        simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=5)
+        simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
@@ -830,11 +830,26 @@ class dino3D():
                                          forces = [999999]*9,
                                          physicsClientId = cid)
             pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = cid, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
-        else:
+        elif num == 5:
             self.botStartPos = self.scale*np.array([-0.005423497042570174, -0.0006093378765514721, 0.9902877456256021])
             botOrn = [-5.9789883568907994e-05,  0.26071283829436115,  0.0001462250556024903,  0.9654163821853766]
             angles = np.array([ -43.        ,  -46.        ,  238.16050597,  154.93573783,
         -43.        ,   46.        , -238.16050597, -154.93573783, 0])*np.pi/180
+            
+            cid, botId = self.Init(botOrn, pb_type = simtype)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            
+            self.AdjustCamera(botID = botId, cid = cid)
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                         targetPositions=angles, 
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
+                                         physicsClientId = cid)
+        
+        elif num == 6:
+            self.botStartPos = self.scale*np.array([0.008122401502023714, 0.00022747351081286866, 1.0901162942408427])
+            botOrn = [0.00023243435960631722, 0.23408647246703776, -0.0009781480527728955, 0.9722152604277481]
+            angles = np.array([ -26.,  -17.,  194.,  122.,  -26.,   17., -194., -122.,    0.])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
             self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
