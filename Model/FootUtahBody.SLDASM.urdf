@@ -493,4 +493,59 @@
     <safety_controller
       k_velocity="0" />
   </joint>
+  <link
+    name="Tail">
+    <inertial>
+      <origin
+        xyz="0.421457332725084 -9.67276904467562E-10 -0.0568211726179445"
+        rpy="0 0 0" />
+      <mass
+        value="2.43669066002775" />
+      <inertia
+        ixx="0.00361500190357776"
+        ixy="-7.00435857004311E-10"
+        ixz="0.00346870361655754"
+        iyy="0.102575187379763"
+        iyz="1.22087694850174E-10"
+        izz="0.102066233974879" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="BodyWithTail/meshes/Tail.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.00784313725490196 0.23921568627451 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="BodyWithTail/meshes/Tail.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Hips_Tail"
+    type="continuous">
+    <origin
+      xyz="-0.193717960242815 0 0.132"
+      rpy="3.14159265358979 0 3.14159265358979" />
+    <parent
+      link="base_link" />
+    <child
+      link="Tail" />
+    <axis
+      xyz="0 0 1" />
+    <safety_controller
+      k_velocity="0" />
+  </joint>
 </robot>

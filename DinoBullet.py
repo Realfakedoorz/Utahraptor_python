@@ -111,7 +111,7 @@ class dino3D():
         
         #time.sleep(0.1)
         
-        botID = pb.loadURDF("./Model/BodyWithTail.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
+        botID = pb.loadURDF("./Model/FootUtahBody.SLDASM.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
                                  botStartOrientation, physicsClientId = cid,
                                  globalScaling = self.scale)
         numJoints = pb.getNumJoints(botID)
@@ -358,6 +358,7 @@ class dino3D():
         self.Disconnect()
         self.RunSRV(1)
         time.sleep(1)
+        now = datetime.now()
         '''print("\nInShow, {:.3f}".format(self.elites[-1][0][0]))'''
         #angles = np.array([90-38+30, 180-83, 180-110, 63, 90-38+30, -(180-83), -(180-110), -63])*np.pi/180#self.population[sort[0]][0]
         #botStartOrientation = pb.getQuaternionFromEuler([0,-30*np.pi/180,0])
@@ -374,7 +375,7 @@ class dino3D():
         
         cid, botId = self.Init(botStartOrientation, pb_type = pb.SHARED_MEMORY)
         if log == 1:
-            logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "bestStanding.mp4")  
+            logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "stand_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
         print([cid,botId])
         self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
         
