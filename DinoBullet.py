@@ -523,8 +523,8 @@ class dino3D():
     def mutateWalk(self, rate = 0.01):
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
-                if rd.rand() < rate:
-                    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
+                #if rd.rand() < rate:
+                    #self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
@@ -557,7 +557,7 @@ class dino3D():
                 self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            #self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
+            self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
       
     def fitnessWalk(self, popNum = 0):
         legt0   = self.population[popNum, 0]
@@ -604,7 +604,7 @@ class dino3D():
                                   
                 if t>1 and i > 10:
                     sc = 1
-                    self.maxforce == 9999999
+                    self.maxforce == 500
                 else:
                     self.maxforce = 500
                     
@@ -732,7 +732,7 @@ class dino3D():
             else:
                 if t>1 and i > 10:
                     sc = 1
-                    self.maxforce == 9999999
+                    self.maxforce == 500
                 else:
                     self.maxforce = 500
                     
@@ -956,3 +956,12 @@ class dino3D():
         toe = tarsus+   np.array([L_foot*(c23*c45 - s23*s45), L_foot*(c23*s45 + s23*c45)])
         
         return tarsus
+    
+    
+    def setWalkParams(self):
+        self.a0 = [-4.30000000e+01, -4.60000000e+01,  2.38160506e+02, 1.54935738e+02]
+        self.a1 = [-3.98144313e+01, -9.74788745e+00, -3.60004156e+00, -6.70286657e+00]
+        self.T1 = [ 1.00555825e+00,  5.47790755e-02,  2.89667092e-01, 5.11000934e-01]
+        self.a2 = [ 2.52137472e+01,  1.59878619e+01,  1.17385969e+01, 1.98134763e+01]
+        self.T2 = [ 9.08245134e-01, -2.30661017e-01, -4.74756371e-01, 1.27556671e+00]
+        
