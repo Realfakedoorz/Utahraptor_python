@@ -379,7 +379,8 @@ class dino3D():
         self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
         
         self.Torques = []
-        angles.append(0)
+        
+        print(angles)
         for dur in range(0,1000):
             self.Step(1, sleep = 1, cid=cid, botID=botId)
             self.AdjustCamera(botID = botId, cid = cid)
