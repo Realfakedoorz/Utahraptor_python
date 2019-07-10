@@ -523,8 +523,8 @@ class dino3D():
     def mutateWalk(self, rate = 0.01):
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
-                #if rd.rand() < rate:
-                    #self.population[i, 0, w] = rd.randint(0,360) #theta0xs
+                if rd.rand() < rate:
+                    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
@@ -557,7 +557,7 @@ class dino3D():
                 self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
+            #self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
       
     def fitnessWalk(self, popNum = 0):
         legt0   = self.population[popNum, 0]
@@ -602,18 +602,12 @@ class dino3D():
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(t + legT2[2])/T))),
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(t + legT2[3])/T)))])*np.pi/180
                                   
-            
-                if i == 10:
+                if t>1 and i > 10:
+                    sc = 1
                     self.maxforce == 9999999
-                    #pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = simID, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
-    
-                if i == 0:
-                    pass
-                    #pb.disconnect(simID)  
-                    #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
                 else:
-                    if t>1 and i > 20:
-                        sc = 1
+                    self.maxforce = 500
+                    
                 pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
                                                  targetVelocities = [0]*8,
@@ -730,19 +724,18 @@ class dino3D():
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(t + legT2[2])/T))),
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(t + legT2[3])/T)))])*np.pi/180
                                   
-        
-            if i == 10:
-                self.maxforce == 9999999
-                #pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = simID, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
-
             if i == 0:
                 if log == 1:
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
                 #pb.disconnect(simID)  
                 #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
             else:
-                if t>1 and i > 20:
+                if t>1 and i > 10:
                     sc = 1
+                    self.maxforce == 9999999
+                else:
+                    self.maxforce = 500
+                    
             pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
                                              targetVelocities = [0]*8,
