@@ -527,14 +527,14 @@ class dino3D():
                     #self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
-                    self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
+                    self.population[i, 1, w] = rd.randint(-100,100)#amplitudes
                     
                 if rd.rand() < rate:
                     self.population[i, 2, w] = rd.randint(-50,50)/(50/1.5)#Ts
                 
                 #Second sine parameters
                 if rd.rand() < rate:
-                    self.population[i, 3, w] = rd.randint(-50,50)
+                    self.population[i, 3, w] = rd.randint(-100,100)
                 
                 if rd.rand() < rate:
                     self.population[i, 4, w] = rd.randint(-50,50)/(50/1.5)#Ts
@@ -551,10 +551,10 @@ class dino3D():
         for d in range(0,self.popsize):
             for w in range(0,4):
                 self.population[d, 0, w] = rd.randint(0,360)            #a0
-                self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
-                self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)  #T1 1st phase shift
-                self.population[d, 3, w] = rd.randint(-50,50)           #a2 2nd amplitude
-                self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
+                self.population[d, 1, w] = rd.randint(-100,100)           #a1 1st amplitude
+                self.population[d, 2, w] = rd.randint(-100,50)/(100/1.5)  #T1 1st phase shift
+                self.population[d, 3, w] = rd.randint(-100,100)           #a2 2nd amplitude
+                self.population[d, 4, w] = rd.randint(-100,50)/(100/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
             self.population[d,0,:] = [-43.,  -46.,  238.16050597, 154.93573783]
@@ -586,21 +586,21 @@ class dino3D():
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
         if T>1.5: T=1.5
         for i in range(4000):
-            if botPos[2] > 0.4 and botPos[2] < 2:
+            if botPos[2] > 0.4 and botPos[2] < 1.6:
                 dur += 1
                 t = float(i)*(self.T_fixed)
                 
                 #legamp[0]*np.sin(legamp[0]) + sc*legamp2[]
                 
                 
-                angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(t + legT2[0])/T)),
-                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(t + legT2[1])/T)),
-                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(t + legT2[2])/T)),
-                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(t + legT2[3])/T)),
-                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(t + legT2[0])/T)),
-                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(t + legT2[1])/T))),
-                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(t + legT2[3])/T)))])*np.pi/180
+                angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
+                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
+                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
+                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
+                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
+                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
+                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
                                   
                 if t>1 and i > 10:
                     sc = 1
@@ -683,6 +683,8 @@ class dino3D():
             self.blendWalk()
             gc.collect()
             self.mutateWalk(rate=max([0.2*(1-ep/(0.7*epochs)), 0.01]))
+            with open('elites.dat', 'rb') as f:
+                        [self.elites] = pickle.load(f)
             gc.collect()
             
         pb.disconnect()
@@ -715,14 +717,14 @@ class dino3D():
         if T>1.5: T=1.5
         for i in range(10000):
             t = float(i)*(self.T_fixed)
-            angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(t + legT2[0])/T)),
-                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(t + legT2[1])/T)),
-                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(t + legT2[2])/T)),
-                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(t + legT2[3])/T)),
-                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(t + legT2[0])/T)),
-                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(t + legT2[1])/T))),
-                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(t + legT2[3])/T)))])*np.pi/180
+            angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
+                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
+                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
+                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
+                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
+                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
+                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
                                   
             if i == 0:
                 if log == 1:
