@@ -602,18 +602,12 @@ class dino3D():
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
                                   
-            
-                if i == 10:
-                    self.maxforce == 9999999
-                    #pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = simID, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
-    
-                if i == 0:
-                    pass
-                    #pb.disconnect(simID)  
-                    #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
+                if t>1 and i > 10:
+                    sc = 1
+                    self.maxforce == 500
                 else:
-                    if t>1 and i > 20:
-                        sc = 1
+                    self.maxforce = 500
+                    
                 pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
                                                  targetVelocities = [0]*8,
@@ -648,7 +642,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*100000 - 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*10000 - 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -659,8 +653,6 @@ class dino3D():
             print("New best : {:.0f}".format(fit))
             print("Managed {dur:f} seconds, T = {step:f}".format(dur=t, step=T))
             self.elites.append(self.population[popNum])
-            with open('elites.dat', 'wb') as f:
-                        pickle.dump([self.elites], f)
             self.showIm(simID, botID = botId)
         pb.disconnect(physicsClientId = simID)    
     
@@ -734,19 +726,18 @@ class dino3D():
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
                                   
-        
-            if i == 10:
-                self.maxforce == 9999999
-                #pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = simID, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
-
             if i == 0:
                 if log == 1:
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
                 #pb.disconnect(simID)  
                 #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
             else:
-                if t>1 and i > 20:
+                if t>1 and i > 10:
                     sc = 1
+                    self.maxforce == 500
+                else:
+                    self.maxforce = 500
+                    
             pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
                                              targetVelocities = [0]*8,
@@ -967,3 +958,12 @@ class dino3D():
         toe = tarsus+   np.array([L_foot*(c23*c45 - s23*s45), L_foot*(c23*s45 + s23*c45)])
         
         return tarsus
+    
+    
+    def setWalkParams(self):
+        self.a0 = [-4.30000000e+01, -4.60000000e+01,  2.38160506e+02, 1.54935738e+02]
+        self.a1 = [-3.98144313e+01, -9.74788745e+00, -3.60004156e+00, -6.70286657e+00]
+        self.T1 = [ 1.00555825e+00,  5.47790755e-02,  2.89667092e-01, 5.11000934e-01]
+        self.a2 = [ 2.52137472e+01,  1.59878619e+01,  1.17385969e+01, 1.98134763e+01]
+        self.T2 = [ 9.08245134e-01, -2.30661017e-01, -4.74756371e-01, 1.27556671e+00]
+        
