@@ -531,8 +531,9 @@ class dino3D():
     def mutateWalk(self, rate = 0.01):
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
-                if rd.rand() < rate:
-                    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
+                #if rd.rand() < rate:
+                #    self.population[i, 0, w] = rd.randint(-50,50)            #a0
+                #    self.population[i, 0, w] += np.array([-26.,  -17.,  194.,  122.])
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
@@ -557,8 +558,9 @@ class dino3D():
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
+            self.population[d, 0] = rd.randint(-50,50, size=4)            #a0
+            self.population[d, 0] += [-26.,  -17.,  194.,  122.]
             for w in range(0,4):
-                self.population[d, 0, w] = rd.randint(0,360)            #a0
                 self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
                 self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)  #T1 1st phase shift
                 self.population[d, 3, w] = rd.randint(-50,50)           #a2 2nd amplitude
