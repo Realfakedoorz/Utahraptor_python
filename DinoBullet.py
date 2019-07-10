@@ -613,7 +613,7 @@ class dino3D():
                     #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
                 else:
                     if t>1 and i > 20:
-                        sc = .5
+                        sc = 1
                 pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
                                                  targetVelocities = [0]*8,
@@ -648,7 +648,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 1000000 + speed*10000 - 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*10000 - 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -659,7 +659,7 @@ class dino3D():
             print("New best : {:.0f}".format(fit))
             print("Managed {dur:f} seconds, T = {step:f}".format(dur=t, step=T))
             self.elites.append(self.population[popNum])
-            #self.showIm(simID, botID = botId)
+            self.showIm(simID, botID = botId)
         pb.disconnect(physicsClientId = simID)    
     
     def WalkingGA(self, epochs = 10):
@@ -742,7 +742,7 @@ class dino3D():
                 #simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
             else:
                 if t>1 and i > 20:
-                    sc = .5
+                    sc = 1
             pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
                                              targetVelocities = [0]*8,
