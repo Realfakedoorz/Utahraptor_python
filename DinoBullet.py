@@ -111,7 +111,7 @@ class dino3D():
         
         #time.sleep(0.1)
         
-        botID = pb.loadURDF("./Model/FootUtahBody.SLDASM.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
+        botID = pb.loadURDF("./Model/BodyWithTail.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
                                  botStartOrientation, physicsClientId = cid,
                                  globalScaling = self.scale)
         numJoints = pb.getNumJoints(botID)
@@ -220,13 +220,18 @@ class dino3D():
         if pb.getLinkState(bodyUniqueId = botId, linkIndex=1, physicsClientId = simID)[0][2] > botPos[2]:
             basePosPen -=10000
             #print("p4")
-                    
+        
+        if len(angles) < 9:
+            angles.append(0)
+            
+                 
         while botPos[2] > 0.5:
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
-                                                 targetVelocities = [0]*8,
-                                                 forces = [99999999999]*8,
+                                                 targetVelocities = [0]*9,
+                                                 forces = [99999999999]*9,
                                                  physicsClientId = simID)
             botPos, botOrn = pb.getBasePositionAndOrientation(botId)
             
@@ -374,13 +379,15 @@ class dino3D():
         self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
         
         self.Torques = []
+        angles.append(0)
         for dur in range(0,1000):
             self.Step(1, sleep = 1, cid=cid, botID=botId)
             self.AdjustCamera(botID = botId, cid = cid)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                          targetPositions=angles, 
-                                         targetVelocities = [0]*8,
-                                         forces = [99999999999]*8)
+                                         targetVelocities = [0]*9,
+                                         forces = [99999999999]*9)
+            
             torques = []
             for j in range(8):
                 tmp, tmp, tmp, t = pb.getJointState(botId, j)
@@ -600,7 +607,7 @@ class dino3D():
                                    legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
                                    -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
                                   
                 if t>1 and i > 10:
                     sc = 1
@@ -608,10 +615,10 @@ class dino3D():
                 else:
                     self.maxforce = 500
                     
-                pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+                pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
-                                                 targetVelocities = [0]*8,
-                                                 forces = [self.maxforce]*8,
+                                                 targetVelocities = [0]*9,
+                                                 forces = [self.maxforce]*9,
                                                  physicsClientId = simID)
                     #self.setLegs(angles, sleep = 0, botID = botId, cid = simID)
                     
@@ -724,7 +731,7 @@ class dino3D():
                                    legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
                                    -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)))])*np.pi/180
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
                                   
             if i == 0:
                 if log == 1:
@@ -738,10 +745,10 @@ class dino3D():
                 else:
                     self.maxforce = 500
                     
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
-                                             targetVelocities = [0]*8,
-                                             forces = [self.maxforce]*8,
+                                             targetVelocities = [0]*9,
+                                             forces = [self.maxforce]*9,
                                              physicsClientId = simID)
             
             self.Step(steps = 1, sleep = 1, cid=simID, botID=botId)
@@ -781,13 +788,13 @@ class dino3D():
                                51.95977158, -97.04235016, -70.55186208, -61.87077155])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
             
             self.AdjustCamera(botID = botId, cid = cid)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                          targetPositions=angles, 
-                                         targetVelocities = [0]*8,
-                                         forces = [999999]*8,
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
                                          physicsClientId = cid)
         elif num == 1:
             self.botStartPos = self.scale*np.array([0.041268085601263, 0.099768429873335, 1.1749753510013218])#was 1.2
@@ -796,13 +803,13 @@ class dino3D():
                                141.78012687, -332.53399047,  -47.97753527, -159.23824605])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
             
             self.AdjustCamera(botID = botId, cid = cid)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                          targetPositions=angles, 
-                                         targetVelocities = [0]*8,
-                                         forces = [999999]*8,
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
                                          physicsClientId = cid)   
         elif num == 3:
             self.botStartPos = self.scale*np.array([0, 0, height])#was 1.2
@@ -810,13 +817,13 @@ class dino3D():
             angles = np.array(anglesset)*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
             
             self.AdjustCamera(botID = botId, cid = cid)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                          targetPositions=angles, 
-                                         targetVelocities = [0]*8,
-                                         forces = [999999]*8,
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
                                          physicsClientId = cid)
             pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = cid, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
         else:
@@ -826,13 +833,13 @@ class dino3D():
         -43.        ,   46.        , -238.16050597, -154.93573783])*np.pi/180
             
             cid, botId = self.Init(botOrn, pb_type = simtype)
-            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid); angles.append(0)
             
             self.AdjustCamera(botID = botId, cid = cid)
-            pb.setJointMotorControlArray(botId, range(8), controlMode = pb.POSITION_CONTROL, 
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                          targetPositions=angles, 
-                                         targetVelocities = [0]*8,
-                                         forces = [999999]*8,
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
                                          physicsClientId = cid)
         
         self.botStartPos = ([0,0,2])

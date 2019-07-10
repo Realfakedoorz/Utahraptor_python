@@ -1,0 +1,1 @@
+controller_joint_names: ['', 'Hip_femur_L', 'Femur_tibia_L', 'Tibia_tarsa_L', 'Tarsa_foot_L', 'Hips_femur_R', 'Femur_tibia_R', 'Tibia_tarsa_R', 'Tarsa_foot_R', 'Hips_Tail', ]
