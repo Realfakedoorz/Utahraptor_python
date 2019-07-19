@@ -684,6 +684,9 @@ class dino3D():
         OrnFit = 0
         ZMPdist = 0
         
+        '''NOTE: Right, fuck this, time to get the feet flat and the tail working ''' 
+        
+        
         ''' Modify the fkine function for this '''
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))
         if T>3.5: T=3.5
