@@ -606,7 +606,7 @@ class dino3D():
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
             
         for i in range(4000):
-            if botPos[2] > 0.4 and botPos[2] < 1.6 and footLoc < 0.4 and footLoc < botPos[2]:
+            if botPos[2] > 0.55 and botPos[2] < 1.6 and footLoc < 0.4 and footLoc < botPos[2]:
                 dur += 1
                 t = float(i)*(self.T_fixed)
                 
@@ -664,7 +664,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*10000 - 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 #- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -675,7 +675,7 @@ class dino3D():
             print("New best : {:.0f}".format(fit))
             print("Managed {dur:f} seconds, T = {step:f}".format(dur=t, step=T))
             self.elites.append(self.population[popNum])
-            self.showIm(simID, botID = botId)
+            #self.showIm(simID, botID = botId)
             with open('elites.dat', 'wb') as f:
                         pickle.dump([self.elites], f)
         pb.disconnect(physicsClientId = simID)    
@@ -748,7 +748,6 @@ class dino3D():
         
         for i in range(10000):
             t = float(i)*(self.T_fixed)
-            print(pb.getBaseVelocity(botId)[0][1])
             #if t < T: #ramp up angle
             #    angles = walkbase + (i*T/self.T_fixed)*diff
             #else:
@@ -788,7 +787,7 @@ class dino3D():
             
             botPos, botOrn = pb.getBasePositionAndOrientation(botId)
             footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
-            if botPos[2] < 0.4 or botPos[2] > 2 or footLoc > botPos[2]:
+            if botPos[2] < 0.55 or botPos[2] > 2 or footLoc > botPos[2]:
                 break
             #print(botPos)
         if log == 1:    
