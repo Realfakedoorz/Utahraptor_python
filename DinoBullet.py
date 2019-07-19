@@ -49,6 +49,7 @@ class dino3D():
         
         self.prev_rots = [0,0,0,0,0,0,0,0,0]
         self.acc_rots = [0,0,0,0,0,0,0,0,0]
+        self.order = 4
         
         #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         rd.seed()
@@ -543,6 +544,46 @@ class dino3D():
             n+=1
             n+=1
         
+    def mutateWalk_Old(self, rate = 0.01):
+        for i in range(0,self.popsize):
+            for w in range(0, len(self.population[0,0,:])):
+                for t in range(4):
+                    '''t_l = [-26.,  -17.,  194.,  122.]
+                    if rd.rand() < rate:
+                        if t!=0:
+                            self.population[i, 0, t] = rd.randint(-5,5)            #a0
+                        else:
+                            self.population[i, 0, t] = rd.randint(-10,0)
+                        self.population[i, 0, t] += t_l[t]
+                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs'''
+                    
+                if rd.rand() < rate:
+                    self.population[i, 1, w] = rd.rand()*100-50#amplitudes
+                    
+                if rd.rand() < rate:
+                    self.population[i, 2, w] = 2*rd.rand()-1#Ts
+                
+                #Second sine parameters
+                if rd.rand() < rate:
+                    self.population[i, 3, w] = rd.rand()*100-50
+                
+                if rd.rand() < rate:
+                    self.population[i, 4, w] = 2*rd.rand()-1#Ts
+                    
+                if rd.rand() < rate:
+                    self.population[i, 5, w] = rd.rand()*100-50
+                
+                if rd.rand() < rate:
+                    self.population[i, 6, w] = 2*rd.rand()-1#Ts
+                    
+                if rd.rand() < rate:
+                    self.population[i, 7, w] = rd.rand()*100-50
+                
+                if rd.rand() < rate:
+                    self.population[i, 8, w] = 2*rd.rand()-1#Ts
+            #if rd.rand() < rate:
+                #self.popBodyOffsets[i] = rd.randint(0,360)
+                
     def mutateWalk(self, rate = 0.01):
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
@@ -557,33 +598,36 @@ class dino3D():
                 #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs'''
                     
                 if rd.rand() < rate:
-                    self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
+                    self.population[i, 1, w] += rd.rand()*10-5#amplitudes
                     
                 if rd.rand() < rate:
-                    self.population[i, 2, w] = 2*rd.rand()-1#Ts
+                    self.population[i, 2, w] += 0.2*rd.rand()-0.1#Ts
+                    if abs(self.population[i, 2, w]) > 1: self.population[i, 2, w] = 1*np.sign(self.population[i, 2, w])
                 
                 #Second sine parameters
                 if rd.rand() < rate:
-                    self.population[i, 3, w] = rd.randint(-50,50)
+                    self.population[i, 3, w] += rd.rand()*10-5
                 
                 if rd.rand() < rate:
-                    self.population[i, 4, w] = 2*rd.rand()-1#Ts
-                    
+                    self.population[i, 4, w] += 0.2*rd.rand()-0.1#Ts
+                    if abs(self.population[i, 4, w]) > 1: self.population[i, 4, w] = 1*np.sign(self.population[i, 4, w])
+
                 if rd.rand() < rate:
-                    self.population[i, 5, w] = rd.randint(-50,50)
+                    self.population[i, 5, w] += rd.rand()*10-5
                 
                 if rd.rand() < rate:
-                    self.population[i, 6, w] = 2*rd.rand()-1#Ts
-                    
+                    self.population[i, 6, w] += 0.2*rd.rand()-0.1#Ts
+                    if abs(self.population[i, 6, w]) > 1: self.population[i, 6, w] = 1*np.sign(self.population[i, 6, w])
+
                 if rd.rand() < rate:
-                    self.population[i, 7, w] = rd.randint(-50,50)
+                    self.population[i, 7, w] += rd.rand()*10-5
                 
                 if rd.rand() < rate:
-                    self.population[i, 8, w] = 2*rd.rand()-1#Ts
+                    self.population[i, 8, w] += 0.2*rd.rand()-0.1#Ts
+                    if abs(self.population[i, 8, w]) > 1: self.population[i, 8, w] = 1*np.sign(self.population[i, 8, w])
+        
             #if rd.rand() < rate:
-                #self.popBodyOffsets[i] = rd.randint(0,360)
-                
-                
+                #self.popBodyOffsets[i] = rd.randint(0,360)         
                         
     def generateWalk(self):
         ''' Generate 20 random sets of parameters '''
@@ -596,13 +640,13 @@ class dino3D():
             a = rd.randint(-10,0)
             self.population[d, 0, 1] = a-26
             for w in range(0,4):
-                self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
+                self.population[d, 1, w] = rd.rand()*100-50          #a1 1st amplitude
                 self.population[d, 2, w] = 2*rd.rand()-1  #T1 1st phase shift
-                self.population[d, 3, w] = rd.randint(-50,50)           #a2 2nd amplitude
+                self.population[d, 3, w] = rd.rand()*100-50            #a2 2nd amplitude
                 self.population[d, 4, w] = 2*rd.rand()-1  #T2 2nd phase shift
-                self.population[d, 5, w] = rd.randint(-50,50)           #a2 2nd amplitude
+                self.population[d, 5, w] = rd.rand()*100-50            #a2 2nd amplitude
                 self.population[d, 6, w] = 2*rd.rand()-1  #T2 2nd phase shift
-                self.population[d, 7, w] = rd.randint(-50,50)           #a2 2nd amplitude
+                self.population[d, 7, w] = rd.rand()*100-50           #a2 2nd amplitude
                 self.population[d, 8, w] = 2*rd.rand()-1  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
@@ -627,8 +671,6 @@ class dino3D():
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
-        heightDiff = botPos[2]-footLoc
-        OrnInit = botOrn
         
         '''Deprecate this attempt at ramping? Seems to be sorted by velocity limits '''
         walkbase = np.array([-26.,  -17.,  194.,  122., -26., 17., -194., -122, 0])
@@ -636,11 +678,12 @@ class dino3D():
         diff = angs-walkbase
         
         dur = 0
-        torpen = 0
-        floorpen = 0
         pencon = 0
         speed = 0
         sc = 1
+        OrnFit = 0
+        ZMPdist = 0
+        
         ''' Modify the fkine function for this '''
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))
         if T>3.5: T=3.5
@@ -649,7 +692,7 @@ class dino3D():
         
         while pb.getBaseVelocity(botId)[0][1] < 0:
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
-        ZMPdist = 0
+        
         for i in range(4000):
             if botPos[2] > 0.55 and botPos[2] < 1.6 and footLoc < 0.4 and footLoc < botPos[2]:
                 dur += 1
@@ -698,25 +741,17 @@ class dino3D():
                         torpen += 1'''
                 pencon += self.penConsts(cid = simID, botID = botId)
 
-           
-        botAngles = np.array(pb.getEulerFromQuaternion(botOrn))%(2*np.pi)*180/np.pi
-        if botAngles[0] < 150 and botAngles[0] > 30:
-            OrnFit = 0#100000
-        else:
-            OrnFit = 0#-10000
+                botAngles = np.array(pb.getEulerFromQuaternion(botOrn))%(2*np.pi)*180/np.pi
+                if botAngles[0] < 150 and botAngles[0] > 30:
+                    OrnFit = 0#100000
+                else:
+                    OrnFit = 0#-10000
             
-        if botAngles[2] > 270 or botAngles[2] < 90:
-            OrnFit = 10000000
-        else:
-            OrnFit = 0
-        
-        if footOrn < 0.4 and footOrn > -0.4:
-            footFit = 100000
-        else:
-            footFit = 0
-            
+                if botAngles[2] > 270 or botAngles[2] < 90:
+                    OrnFit += 1
+                    
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 + OrnFit - ZMPdist*100000#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -737,7 +772,7 @@ class dino3D():
         # Initialise server
         #self.runthreads([self.RunSRV, self.Connect])
         if self.popsize == 0:
-            self.popsize = 100
+            self.popsize = 60
             self.fitnesses = np.zeros(self.popsize)
             self.population = np.zeros([self.popsize,5,4])
             self.popBodyOffsets = np.zeros(self.popsize)
@@ -891,8 +926,16 @@ class dino3D():
            legamp4[0]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[0]))),     -legamp4[1]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[1]))),
            -legamp4[2]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[2]))),    -legamp4[3]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[3]))),
            0])
-    
-        angles = (f0+f1+f2+f3+f4)*np.pi/180
+        
+        if self.order == 1:
+            angles = (f0+f1)*np.pi/180
+        elif self.order == 2:
+            angles = (f0+f1+f2)*np.pi/180
+        elif self.order == 3:
+            angles = (f0+f1+f2+f3)*np.pi/180
+        elif self.order == 4:
+            angles = (f0+f1+f2+f3+f4)*np.pi/180
+            
         return angles
     
     def ZMP(self, botID, simID):
