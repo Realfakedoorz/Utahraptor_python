@@ -534,6 +534,7 @@ class dino3D():
                 #if rd.rand() < rate:
                 #    self.population[i, 0, w] = rd.randint(-50,50)            #a0
                 #    self.population[i, 0, w] += np.array([-26.,  -17.,  194.,  122.])
+                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
@@ -611,20 +612,20 @@ class dino3D():
                 
                 #legamp[0]*np.sin(legamp[0]) + sc*legamp2[]
                 
-                if t < T: #ramp up angle
-                    angles = walkbase + (i*T/self.T_fixed)*diff
-                else:
-                    angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
-                                       legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
-                                       legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
-                                       legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
-                                       legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
-                                       -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
-                                       -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                       -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
-                                      
+#                if t < T: #ramp up angle
+#                    angles = walkbase + (i*T/self.T_fixed)*diff
+#                else:
+                angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
+                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
+                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
+                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
+                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
+                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
+                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
+                                  
                 if t>1 and i > 10:
-                    sc = 1
+                    sc = 0.5
                     self.maxforce == 500
                 else:
                     self.maxforce = 500
@@ -747,24 +748,25 @@ class dino3D():
         
         for i in range(10000):
             t = float(i)*(self.T_fixed)
-            if t < T: #ramp up angle
-                angles = walkbase + (i*T/self.T_fixed)*diff
-            else:
-                angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
-                                       legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
-                                       legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
-                                       legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
-                                       legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
-                                       -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
-                                       -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                       -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
-                                  
+            print(pb.getBaseVelocity(botId)[0][1])
+            #if t < T: #ramp up angle
+            #    angles = walkbase + (i*T/self.T_fixed)*diff
+            #else:
+            angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
+                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
+                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
+                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
+                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
+                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
+                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
+                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
+                              
             if i == 0:
                 if log == 1:
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
             else:
                 if t>1 and i > 10:
-                    sc = 1
+                    sc = 0.5
                     self.maxforce == 500
                 else:
                     self.maxforce = 500
