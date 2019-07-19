@@ -531,9 +531,11 @@ class dino3D():
     def mutateWalk(self, rate = 0.01):
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
-                #if rd.rand() < rate:
-                #    self.population[i, 0, w] = rd.randint(-50,50)            #a0
-                #    self.population[i, 0, w] += np.array([-26.,  -17.,  194.,  122.])
+                for t in range(4):
+                    t_l = [-26.,  -17.,  194.,  122.]
+                    if rd.rand() < rate:
+                        self.population[i, 0, t] = rd.randint(-20,20)            #a0
+                        self.population[i, 0, t] += t_l[t]
                 #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
@@ -559,7 +561,7 @@ class dino3D():
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
-            self.population[d, 0] = rd.randint(-50,50, size=4)            #a0
+            self.population[d, 0] = rd.randint(-20,20, size=4)            #a0
             self.population[d, 0] += [-26.,  -17.,  194.,  122.]
             for w in range(0,4):
                 self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
@@ -568,7 +570,7 @@ class dino3D():
                 self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
+            #self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
       
     def fitnessWalk(self, popNum = 0):
         legt0   = self.population[popNum, 0]
@@ -629,7 +631,7 @@ class dino3D():
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
                                 
                 if t>1 and i > 10:
-                    sc = 0.5
+                    sc = 1
                     self.maxforce == 500
                 else:
                     self.maxforce = 500
@@ -780,7 +782,7 @@ class dino3D():
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
             else:
                 if t>1 and i > 10:
-                    sc = 0.5
+                    sc = 1
                     self.maxforce == 500
                 else:
                     self.maxforce = 500
