@@ -34,13 +34,21 @@ class dino3D():
         self.popsize = 0
         self.pool = Pool(processes=self.CPU_cores)
         self.botStartPos = [0,0,1.5]
-        self.maxforce = 9999
+        self.maxforce = 5000
         self.scale = 1
         self.Disconnect()
         self.vid = []
         self.elites = []
         self.elitesfit = []
         self.epochnum = 0
+        
+        # Finite diff for accelerations
+        self.prev_vs = [0,0,0,0,0,0,0,0,0]
+        self.accs = [0,0,0,0,0,0,0,0,0]
+        
+        self.prev_rots = [0,0,0,0,0,0,0,0,0]
+        self.acc_rots = [0,0,0,0,0,0,0,0,0]
+        
         #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         rd.seed()
         
@@ -83,6 +91,7 @@ class dino3D():
             
             if sleep == 1:
                 time.sleep(self.T_fixed)
+            self.dynAcc(botID, cid)
             
     def AdjustCamera(self, dist = 3, botID=0, cid=0):
         botPos, botOrn = pb.getBasePositionAndOrientation(botID)
@@ -107,7 +116,12 @@ class dino3D():
     
     def Init(self,botStartOrientation, pb_type = pb.DIRECT):
         cid = self.Connect(grav=1, pb_type_connection = pb_type)
+        # Reset acceleration variables
+        self.prev_vs = [0,0,0,0,0,0,0,0,0]
+        self.accs = [0,0,0,0,0,0,0,0,0]
         
+        self.prev_rots = [0,0,0,0,0,0,0,0,0]
+        self.acc_rots = [0,0,0,0,0,0,0,0,0]
         
         #time.sleep(0.1)
         
@@ -472,7 +486,7 @@ class dino3D():
         for i in range(0,self.popsize):
             self.fittotal += self.fitnesses[i]
         
-        probabilities = np.round(self.fitnesses/self.fittotal, decimals = 3)
+        probabilities = np.round(self.fitnesses/self.fittotal, decimals = 7)
         # Fudge to make sum(p) = 1
         if np.sum(probabilities != 1):            
             n = 0
@@ -545,14 +559,26 @@ class dino3D():
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
                     
                 if rd.rand() < rate:
-                    self.population[i, 2, w] = rd.randint(-50,50)/(50/1.5)#Ts
+                    self.population[i, 2, w] = 2*rd.rand()-1#Ts
                 
                 #Second sine parameters
                 if rd.rand() < rate:
                     self.population[i, 3, w] = rd.randint(-50,50)
                 
                 if rd.rand() < rate:
-                    self.population[i, 4, w] = rd.randint(-50,50)/(50/1.5)#Ts
+                    self.population[i, 4, w] = 2*rd.rand()-1#Ts
+                    
+                if rd.rand() < rate:
+                    self.population[i, 5, w] = rd.randint(-50,50)
+                
+                if rd.rand() < rate:
+                    self.population[i, 6, w] = 2*rd.rand()-1#Ts
+                    
+                if rd.rand() < rate:
+                    self.population[i, 7, w] = rd.randint(-50,50)
+                
+                if rd.rand() < rate:
+                    self.population[i, 8, w] = 2*rd.rand()-1#Ts
             #if rd.rand() < rate:
                 #self.popBodyOffsets[i] = rd.randint(0,360)
                 
@@ -560,7 +586,7 @@ class dino3D():
                         
     def generateWalk(self):
         ''' Generate 20 random sets of parameters '''
-        self.population = np.zeros([self.popsize,5,4])
+        self.population = np.zeros([self.popsize,9,4])
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
@@ -570,9 +596,13 @@ class dino3D():
             self.population[d, 0, 1] = a-26
             for w in range(0,4):
                 self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
-                self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)  #T1 1st phase shift
+                self.population[d, 2, w] = 2*rd.rand()-1  #T1 1st phase shift
                 self.population[d, 3, w] = rd.randint(-50,50)           #a2 2nd amplitude
-                self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
+                self.population[d, 4, w] = 2*rd.rand()-1  #T2 2nd phase shift
+                self.population[d, 5, w] = rd.randint(-50,50)           #a2 2nd amplitude
+                self.population[d, 6, w] = 2*rd.rand()-1  #T2 2nd phase shift
+                self.population[d, 7, w] = rd.randint(-50,50)           #a2 2nd amplitude
+                self.population[d, 8, w] = 2*rd.rand()-1  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
             #self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
@@ -583,6 +613,10 @@ class dino3D():
         legT    = self.population[popNum, 2]
         legamp2 = self.population[popNum, 3]
         legT2   = self.population[popNum, 4]
+        legamp3 = self.population[popNum, 5]
+        legT3   = self.population[popNum, 6]
+        legamp4 = self.population[popNum, 7]
+        legT4   = self.population[popNum, 8]
         
         #offSet = self.popBodyOffsets[popNum]
         T = 0.7
@@ -606,8 +640,8 @@ class dino3D():
         speed = 0
         sc = 1
         ''' Modify the fkine function for this '''
-        #T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
-        #if T>1.5: T=1.5
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))
+        if T>3.5: T=3.5
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
         
@@ -670,7 +704,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*10000 + OrnFit#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*1000 + botPos[0] * 2500000 + speed*10000 + OrnFit#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -691,7 +725,7 @@ class dino3D():
         # Initialise server
         #self.runthreads([self.RunSRV, self.Connect])
         if self.popsize == 0:
-            self.popsize = 60
+            self.popsize = 100
             self.fitnesses = np.zeros(self.popsize)
             self.population = np.zeros([self.popsize,5,4])
             self.popBodyOffsets = np.zeros(self.popsize)
@@ -729,6 +763,11 @@ class dino3D():
         legT = self.elites[num][2]
         legamp2 = self.elites[num][3]
         legT2   = self.elites[num][4]
+        legamp3 = self.elites[num][5]
+        legT3 = self.elites[num][6]
+        legamp4 = self.elites[num][7]
+        legT4 = self.elites[num][8]
+        
         #offSet = self.popBodyOffsets[popNum]
         T = 0.5
         
@@ -744,8 +783,8 @@ class dino3D():
         sc = 1
         OrnInit = botOrn
         
-        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
-        if T>1.5: T=1.5
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))        
+        if T>3.5: T=3.5
         
         self.Torques = []
         
@@ -799,33 +838,101 @@ class dino3D():
             legT = self.elites[num][2]
             legamp2 = self.elites[num][3]
             legT2   = self.elites[num][4]
+            legamp3 = self.elites[num][5]
+            legT3   = self.elites[num][6]
+            legamp4 = self.elites[num][7]
+            legT4   = self.elites[num][8]
         else:
             legt0 = self.population[num][0]
             legamp = self.population[num][1]
             legT = self.population[num][2]
             legamp2 = self.population[num][3]
             legT2   = self.population[num][4]
-            
-        
+            legamp3 = self.population[num][5]
+            legT3   = self.population[num][6]
+            legamp4 = self.population[num][7]
+            legT4   = self.population[num][8]
+    
         f0 = np.array([legt0[0], legt0[1], legt0[2], legt0[3], legt0[0], -legt0[1], -legt0[2], -legt0[3], 0])
         
-        f1 = np.array([legamp[0]*np.sin(2*np.pi*(t + legT[0])/T), legamp[1]*np.sin(2*np.pi*(t + legT[1])/T),
-                       legamp[2]*np.sin(2*np.pi*(t + legT[2])/T), legamp[3]*np.sin(2*np.pi*(t + legT[3])/T),
-                       legamp[0]*np.sin(3*np.pi*(t + legT[0])/T), -legamp[1]*np.sin(3*np.pi*(t + legT[1])/T),
-                       -legamp[2]*np.sin(3*np.pi*(t + legT[2])/T), -legamp[3]*np.sin(3*np.pi*(t + legT[3])/T),
-                       0])
+        f1 = np.array([legamp[0]*np.sin((2*np.pi/T)*(t - legT[0])), legamp[1]*np.sin((2*np.pi/T)*(t - legT[1])),
+           legamp[2]*np.sin((2*np.pi/T)*(t - legT[2])), legamp[3]*np.sin((2*np.pi/T)*(t - legT[3])),
+           legamp[0]*np.sin((3*np.pi/T)*(np.pi+ t - legT[0])), -legamp[1]*np.sin((3*np.pi/T)*(np.pi+ t - legT[1])),
+           -legamp[2]*np.sin((3*np.pi/T)*(np.pi+ t - legT[2])), -legamp[3]*np.sin((3*np.pi/T)*(np.pi+ t - legT[3])),
+           0])
     
-        f2 = np.array([legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)), legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
-           legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),             legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
-           legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),     -legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T)),
-           -legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T)),    -legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)),
+        f2 = np.array([legamp2[0]*(np.sin((2*np.pi/T)*(2*t - legT2[0]))), legamp2[1]*(np.sin((2*np.pi/T)*(2*t - legT2[1]))),
+           legamp2[2]*(np.sin((2*np.pi/T)*(2*t - legT2[2]))),             legamp2[3]*(np.sin((2*np.pi/T)*(2*t - legT2[3]))),
+           legamp2[0]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT2[0]))),     -legamp2[1]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT2[1]))),
+           -legamp2[2]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT2[2]))),    -legamp2[3]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT2[3]))),
+           0])
+    
+        f3 = np.array([legamp3[0]*(np.sin((2*np.pi/T)*(2*t - legT3[0]))), legamp3[1]*(np.sin((2*np.pi/T)*(2*t - legT3[1]))),
+           legamp3[2]*(np.sin((2*np.pi/T)*(2*t - legT3[2]))),             legamp3[3]*(np.sin((2*np.pi/T)*(2*t - legT3[3]))),
+           legamp3[0]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT3[0]))),     -legamp3[1]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT3[1]))),
+           -legamp3[2]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT3[2]))),    -legamp3[3]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT3[3]))),
            0])
         
-        
-        angles = (f0+f1+f2)*np.pi/180
+        f4 = np.array([legamp4[0]*(np.sin((2*np.pi/T)*(2*t - legT4[0]))), legamp4[1]*(np.sin((2*np.pi/T)*(2*t - legT4[1]))),
+           legamp4[2]*(np.sin((2*np.pi/T)*(2*t - legT4[2]))),             legamp4[3]*(np.sin((2*np.pi/T)*(2*t - legT4[3]))),
+           legamp4[0]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[0]))),     -legamp4[1]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[1]))),
+           -legamp4[2]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[2]))),    -legamp4[3]*(np.sin((3*np.pi/T)*(np.pi+ 2*t - legT4[3]))),
+           0])
+    
+        angles = (f0+f1+f2+f3+f4)*np.pi/180
         return angles
     
+    def ZMP(self, botID, simID):
+        g= 9.81
+        Px = 0
+        Py = 0
+        denom = 0
+        
+        for i in range(9):
+            m_l     = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
+            I       = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[2]
+            pos     = pb.getLinkState(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
+            acc_lin = self.accs
+            acc_rot = self.acc_rots
+            Px      += (m_l*(acc_lin[2]+g)*pos[0] - m_l*acc_lin[0]*pos[2] - I[1]*acc_rot[1])
+            Px      += (m_l*(acc_lin[2]+g)*pos[1] - m_l*acc_lin[1]*pos[2] - I[0]*acc_rot[0])
+            denom   += (acc_lin[2]+g)*m_l
+            
+        Px /= denom
+        Py /= denom
+        
+        return Px, Py
+            
     
+    def dynAcc(self, botID, simID):
+        '''Finite diff for accelerations (1 time step, cba)'''
+        prev_vs     = np.array(self.prev_vs)
+        accs        = np.array(self.accs)
+        prev_rots   = np.array(self.prev_rots)
+        acc_rots    = np.array(self.acc_rots)
+        
+        vs = prev_vs
+        rots = prev_rots
+        
+        for i in range(9):
+            if i == 0:
+                state = np.array(pb.getBaseVelocity(bodyUniqueId = botID, physicsClientId = simID))
+            else:
+                state = np.array(pb.getLinkState(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID, computeLinkVelocity=1)[6:8])
+            
+            vs[i] = np.array(state[0])
+            rots[i] = np.array(state[1])
+            
+            accs[i]         = (vs[i]   - prev_vs[i])/self.T_fixed
+            acc_rots[i]     = (rots[i] - prev_rots[i])/self.T_fixed
+            prev_vs[i]      = vs[i]
+            prev_rots[i]    = rots[i]
+        
+        self.prev_vs = prev_vs
+        self.accs = accs
+        self.prev_rots = prev_rots
+        self.acc_rots = acc_rots
+        
     ''' Test etc macros '''
     
     def testLegs(self):
@@ -905,7 +1012,7 @@ class dino3D():
                                          physicsClientId = cid)
         
         elif num == 6:
-            self.botStartPos = self.scale*np.array([0.008122401502023714, 0.00022747351081286866, 1.0901162942408427])
+            self.botStartPos = self.scale*np.array([0.008122401502023714, 0.00022747351081286866, 1.3901162942408427])
             botOrn = [0.00023243435960631722, 0.23408647246703776, -0.0009781480527728955, 0.9722152604277481]
             angles = np.array([ -26.,  -17.,  194.,  122.,  -26.,   17., -194., -122.,    0.])*np.pi/180
             
