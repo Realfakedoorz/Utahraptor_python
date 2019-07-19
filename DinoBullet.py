@@ -586,6 +586,8 @@ class dino3D():
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         heightDiff = botPos[2]-footLoc
         
+        
+        '''Deprecate this attempt at ramping? Seems to be sorted by velocity limits '''
         walkbase = np.array([-26.,  -17.,  194.,  122., -26., 17., -194., -122, 0])
         angs = np.array([legt0[0], legt0[1], legt0[2], legt0[3], legt0[0], -legt0[1], -legt0[2], -legt0[3], 0])
         diff = angs-walkbase
@@ -615,6 +617,8 @@ class dino3D():
 #                if t < T: #ramp up angle
 #                    angles = walkbase + (i*T/self.T_fixed)*diff
 #                else:
+                
+                
                 angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
                                    legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
                                    legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
@@ -623,7 +627,7 @@ class dino3D():
                                    -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
                                    -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
                                    -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
-                                  
+                                
                 if t>1 and i > 10:
                     sc = 0.5
                     self.maxforce == 500
@@ -650,13 +654,17 @@ class dino3D():
                     if t > 5000:
                         torpen += 1'''
                 pencon += self.penConsts(cid = simID, botID = botId)
-        footOrn = pb.getEulerFromQuaternion(pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[1])[1]   
+           
         botAngles = np.array(pb.getEulerFromQuaternion(botOrn))%(2*np.pi)*180/np.pi
         if botAngles[0] < 150 and botAngles[0] > 30:
             OrnFit = 0#100000
         else:
             OrnFit = 0#-10000
-        
+            
+        if botAngles[2] > 270 or botAngles[2] < 90:
+            OrnFit = 10000000
+        else:
+            OrnFit = 0
         
         if footOrn < 0.4 and footOrn > -0.4:
             footFit = 100000
@@ -664,7 +672,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 #- 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 2500000 + speed*10000 + OrnFit#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -751,6 +759,13 @@ class dino3D():
             #if t < T: #ramp up angle
             #    angles = walkbase + (i*T/self.T_fixed)*diff
             #else:
+            
+            '''
+            footOrn = pb.getEulerFromQuaternion(pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[1])[1]
+            a_foot = pb.getJointState(bodyUniqueId = botId, jointIndex=3, physicsClientId = simID)[0]
+            
+            a_foot += a_foot-footOrn - 1.9609407178835991'''
+            
             angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
                                    legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
                                    legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
