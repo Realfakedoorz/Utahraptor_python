@@ -534,7 +534,11 @@ class dino3D():
                 for t in range(4):
                     t_l = [-26.,  -17.,  194.,  122.]
                     if rd.rand() < rate:
-                        self.population[i, 0, t] = rd.randint(-20,20)            #a0
+                        if t!=0:
+                            self.population[i, 0, t] = rd.randint(-20,20)            #a0
+                        else:
+                            self.population[i, 0, t] = rd.randint(-20,0)
+                            
                         self.population[i, 0, t] += t_l[t]
                 #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
@@ -563,6 +567,8 @@ class dino3D():
         for d in range(0,self.popsize):
             self.population[d, 0] = rd.randint(-20,20, size=4)            #a0
             self.population[d, 0] += [-26.,  -17.,  194.,  122.]
+            a = rd.randint(-20,0)
+            self.population[d, 0, 1] = a-26
             for w in range(0,4):
                 self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
                 self.population[d, 2, w] = rd.randint(-50,50)/(50/1.5)  #T1 1st phase shift
@@ -587,7 +593,7 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         heightDiff = botPos[2]-footLoc
-        
+        OrnInit = botOrn
         
         '''Deprecate this attempt at ramping? Seems to be sorted by velocity limits '''
         walkbase = np.array([-26.,  -17.,  194.,  122., -26., 17., -194., -122, 0])
@@ -621,13 +627,12 @@ class dino3D():
 #                else:
                 
                 angles = self.f4(popNum, t, T, el=0)
-                                
-                if t>1 and i > 10:
-                    sc = 1
-                    self.maxforce == 5000
-                else:
-                    self.maxforce = 5000
-                    
+                
+                #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
+                #angles[3] = a_foot
+                #angles[7] = -a_foot
+                
+        
                 pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
                                                  targetVelocities = [0]*9,
@@ -738,6 +743,7 @@ class dino3D():
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         heightDiff = botPos[2]-footLoc
         sc = 1
+        OrnInit = botOrn
         
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
         if T>1.5: T=1.5
@@ -750,23 +756,17 @@ class dino3D():
         
         for i in range(10000):
             t = float(i)*(self.T_fixed)
-            '''
-            footOrn = pb.getEulerFromQuaternion(pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[1])[1]
-            a_foot = pb.getJointState(bodyUniqueId = botId, jointIndex=3, physicsClientId = simID)[0]
             
-            a_foot += a_foot-footOrn - 1.9609407178835991'''
-            
+                        
             angles = self.f4(num, t, T)
+            
+            #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
+            #angles[3] = a_foot
+            #angles[7] = -a_foot
                               
             if i == 0:
                 if log == 1:
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
-            else:
-                if t>1 and i > 10:
-                    sc = 1
-                    self.maxforce == 5000
-                else:
-                    self.maxforce = 5000
                     
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
@@ -919,6 +919,23 @@ class dino3D():
                                          targetVelocities = [0]*9,
                                          forces = [999999]*9,
                                          physicsClientId = cid)
+        elif num == 7:
+            self.botStartPos = self.scale*np.array([0, 0, height])#was 1.2
+            botOrn = [0,0,0,1]
+            angles = np.array([3.8,0,133,168,3.8,0,-133,-168,0])*np.pi/180
+            np.append(angles, 0)
+            
+            cid, botId = self.Init(botOrn, pb_type = simtype)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            
+            self.AdjustCamera(botID = botId, cid = cid)
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                         targetPositions=angles, 
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
+                                         physicsClientId = cid)
+            pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = cid, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
+
         
         self.botStartPos = ([0,0,2])
         return cid, botId
@@ -1052,3 +1069,6 @@ class dino3D():
         self.a2 = [ 2.52137472e+01,  1.59878619e+01,  1.17385969e+01, 1.98134763e+01]
         self.T2 = [ 9.08245134e-01, -2.30661017e-01, -4.74756371e-01, 1.27556671e+00]
         
+        
+    '''To get tarsa in line with tibia, angle should be (+) 133*np.pi/180
+    to get foot in line with tarsa, angle should be (+)168*np.pi/180'''
