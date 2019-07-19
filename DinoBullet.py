@@ -620,15 +620,7 @@ class dino3D():
 #                    angles = walkbase + (i*T/self.T_fixed)*diff
 #                else:
                 
-                
-                angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
-                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
-                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
-                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
-                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
-                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
-                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
+                angles = self.f4(popNum, t, T, el=0)
                                 
                 if t>1 and i > 10:
                     sc = 1
@@ -758,24 +750,13 @@ class dino3D():
         
         for i in range(10000):
             t = float(i)*(self.T_fixed)
-            #if t < T: #ramp up angle
-            #    angles = walkbase + (i*T/self.T_fixed)*diff
-            #else:
-            
             '''
             footOrn = pb.getEulerFromQuaternion(pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[1])[1]
             a_foot = pb.getJointState(bodyUniqueId = botId, jointIndex=3, physicsClientId = simID)[0]
             
             a_foot += a_foot-footOrn - 1.9609407178835991'''
             
-            angles = np.array([legt0[0] + sc*legamp[0]*np.sin(2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)),
-                                   legt0[1] + sc*legamp[1]*np.sin(2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
-                                   legt0[2] + sc*legamp[2]*np.sin(2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),
-                                   legt0[3] + sc*legamp[3]*np.sin(2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
-                                   legt0[0] + sc*legamp[0]*np.sin(np.pi + 2*np.pi*(t + legT[0])/T) + sc*legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),
-                                   -(legt0[1] + sc*legamp[1]*np.sin(np.pi + 2*np.pi*(t + legT[1])/T) + sc*legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T))),
-                                   -(legt0[2] + sc*legamp[2]*np.sin(np.pi + 2*np.pi*(t + legT[2])/T) + sc*legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T))),
-                                   -(legt0[3] + sc*legamp[3]*np.sin(np.pi + 2*np.pi*(t + legT[3])/T) + sc*legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T))),0])*np.pi/180
+            angles = self.f4(num, t, T)
                               
             if i == 0:
                 if log == 1:
@@ -812,7 +793,38 @@ class dino3D():
     
     
     
+    def f4(self, num, t, T, el=1):
+        if el == 1:
+            legt0 = self.elites[num][0]
+            legamp = self.elites[num][1]
+            legT = self.elites[num][2]
+            legamp2 = self.elites[num][3]
+            legT2   = self.elites[num][4]
+        else:
+            legt0 = self.population[num][0]
+            legamp = self.population[num][1]
+            legT = self.population[num][2]
+            legamp2 = self.population[num][3]
+            legT2   = self.population[num][4]
+            
+        
+        f0 = np.array([legt0[0], legt0[1], legt0[2], legt0[3], legt0[0], -legt0[1], -legt0[2], -legt0[3], 0])
+        
+        f1 = np.array([legamp[0]*np.sin(2*np.pi*(t + legT[0])/T), legamp[1]*np.sin(2*np.pi*(t + legT[1])/T),
+                       legamp[2]*np.sin(2*np.pi*(t + legT[2])/T), legamp[3]*np.sin(2*np.pi*(t + legT[3])/T),
+                       legamp[0]*np.sin(3*np.pi*(t + legT[0])/T), -legamp[1]*np.sin(3*np.pi*(t + legT[1])/T),
+                       -legamp[2]*np.sin(3*np.pi*(t + legT[2])/T), -legamp[3]*np.sin(3*np.pi*(t + legT[3])/T),
+                       0])
     
+        f2 = np.array([legamp2[0]*(np.sin(2*np.pi*(2*t + legT2[0])/T)), legamp2[1]*(np.sin(2*np.pi*(2*t + legT2[1])/T)),
+           legamp2[2]*(np.sin(2*np.pi*(2*t + legT2[2])/T)),             legamp2[3]*(np.sin(2*np.pi*(2*t + legT2[3])/T)),
+           legamp2[0]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[0])/T)),     -legamp2[1]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[1])/T)),
+           -legamp2[2]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[2])/T)),    -legamp2[3]*(np.sin(np.pi + 2*np.pi*(2*t + legT2[3])/T)),
+           0])
+        
+        
+        angles = (f0+f1+f2)*np.pi/180
+        return angles
     
     
     ''' Test etc macros '''
