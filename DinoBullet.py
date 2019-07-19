@@ -567,7 +567,7 @@ class dino3D():
                 self.population[d, 4, w] = rd.randint(-50,50)/(50/1.5)  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            #self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
+            self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
       
     def fitnessWalk(self, popNum = 0):
         legt0   = self.population[popNum, 0]
@@ -598,6 +598,12 @@ class dino3D():
         ''' Modify the fkine function for this '''
         T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
         if T>1.5: T=1.5
+        lin_vel, ang_vel= pb.getBaseVelocity(botId)
+        
+        
+        while pb.getBaseVelocity(botId)[0][1] < 0:
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            
         for i in range(4000):
             if botPos[2] > 0.4 and botPos[2] < 1.6 and footLoc < 0.4 and footLoc < botPos[2]:
                 dur += 1
@@ -734,6 +740,11 @@ class dino3D():
         if T>1.5: T=1.5
         
         self.Torques = []
+        
+        while pb.getBaseVelocity(botId)[0][1] < 0:
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            print(pb.getBaseVelocity(botId)[0][1])
+        
         for i in range(10000):
             t = float(i)*(self.T_fixed)
             if t < T: #ramp up angle
