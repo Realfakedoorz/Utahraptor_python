@@ -34,13 +34,14 @@ class dino3D():
         self.popsize = 0
         self.pool = Pool(processes=self.CPU_cores)
         self.botStartPos = [0,0,1.5]
-        self.maxforce = 5000
+        self.maxforce = 9000
         self.scale = 1
         self.Disconnect()
         self.vid = []
         self.elites = []
         self.elitesfit = []
         self.epochnum = 0
+        self.dynAccOn = 1
         
         # Finite diff for accelerations
         self.prev_vs = [0,0,0,0,0,0,0,0,0]
@@ -546,14 +547,14 @@ class dino3D():
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
                 for t in range(4):
-                    t_l = [-26.,  -17.,  194.,  122.]
+                    '''t_l = [-26.,  -17.,  194.,  122.]
                     if rd.rand() < rate:
                         if t!=0:
                             self.population[i, 0, t] = rd.randint(-5,5)            #a0
                         else:
                             self.population[i, 0, t] = rd.randint(-10,0)
                         self.population[i, 0, t] += t_l[t]
-                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
+                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs'''
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] = rd.randint(-50,50)#amplitudes
@@ -605,9 +606,10 @@ class dino3D():
                 self.population[d, 8, w] = 2*rd.rand()-1  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            #self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
+            self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
       
     def fitnessWalk(self, popNum = 0):
+        self.dynAccOn = 1
         legt0   = self.population[popNum, 0]
         legamp  = self.population[popNum, 1]
         legT    = self.population[popNum, 2]
@@ -647,7 +649,7 @@ class dino3D():
         
         while pb.getBaseVelocity(botId)[0][1] < 0:
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
-            
+        ZMPdist = 0
         for i in range(4000):
             if botPos[2] > 0.55 and botPos[2] < 1.6 and footLoc < 0.4 and footLoc < botPos[2]:
                 dur += 1
@@ -674,7 +676,16 @@ class dino3D():
                     #self.setLegs(angles, sleep = 0, botID = botId, cid = simID)
                     
                 self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+                ZMP = self.ZMP(botId, simID)
+                
                 footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+                
+                ZMP = self.ZMP(botId, simID)
+                footLoc1 = pb.getLinkState(botId, linkIndex=3)[0][0:2]
+                footLoc2 = pb.getLinkState(botId, linkIndex=7)[0][0:2]
+                footPrint = [(footLoc1[0]+footLoc2[0])/2,  (footLoc1[1]+footLoc2[1])/2]
+                ZMPdist += np.sqrt((ZMP[0]-footPrint[0])**2 + (ZMP[1]-footPrint[1])**2)
+                
                 
                 botPos, botOrn = pb.getBasePositionAndOrientation(botId)
                 lin_vel, ang_vel= pb.getBaseVelocity(botId) 
@@ -686,6 +697,7 @@ class dino3D():
                     if t > 5000:
                         torpen += 1'''
                 pencon += self.penConsts(cid = simID, botID = botId)
+
            
         botAngles = np.array(pb.getEulerFromQuaternion(botOrn))%(2*np.pi)*180/np.pi
         if botAngles[0] < 150 and botAngles[0] > 30:
@@ -704,7 +716,7 @@ class dino3D():
             footFit = 0
             
         footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
-        fit = (t/self.T_fixed)*1000 + botPos[0] * 2500000 + speed*10000 + OrnFit#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 + OrnFit - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -757,6 +769,7 @@ class dino3D():
         self.RunSRV(1)
         time.sleep(1)
         now = datetime.now()
+        self.dynAccOn = 0
         
         legt0 = self.elites[num][0]
         legamp = self.elites[num][1]
@@ -891,29 +904,31 @@ class dino3D():
         for i in range(9):
             m_l     = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
             I       = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[2]
-            pos     = pb.getLinkState(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
-            acc_lin = self.accs
-            acc_rot = self.acc_rots
+            if i == 0:
+                pos     = pb.getBasePositionAndOrientation(bodyUniqueId = botID, physicsClientId = simID)[0]
+            else:
+                pos     = pb.getLinkState(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
+            acc_lin = self.accs[i]
+            acc_rot = self.acc_rots[i]
             Px      += (m_l*(acc_lin[2]+g)*pos[0] - m_l*acc_lin[0]*pos[2] - I[1]*acc_rot[1])
-            Px      += (m_l*(acc_lin[2]+g)*pos[1] - m_l*acc_lin[1]*pos[2] - I[0]*acc_rot[0])
+            Py      += (m_l*(acc_lin[2]+g)*pos[1] - m_l*acc_lin[1]*pos[2] - I[0]*acc_rot[0])
             denom   += (acc_lin[2]+g)*m_l
-            
+        
         Px /= denom
         Py /= denom
-        
         return Px, Py
             
     
     def dynAcc(self, botID, simID):
         '''Finite diff for accelerations (1 time step, cba)'''
-        prev_vs     = np.array(self.prev_vs)
-        accs        = np.array(self.accs)
-        prev_rots   = np.array(self.prev_rots)
-        acc_rots    = np.array(self.acc_rots)
+        prev_vs     = np.array(self.prev_vs, dtype=object)
+        accs        = np.array(self.accs, dtype=object)
+        prev_rots   = np.array(self.prev_rots, dtype=object)
+        acc_rots    = np.array(self.acc_rots, dtype=object)
         
         vs = prev_vs
         rots = prev_rots
-        
+
         for i in range(9):
             if i == 0:
                 state = np.array(pb.getBaseVelocity(bodyUniqueId = botID, physicsClientId = simID))
@@ -930,6 +945,7 @@ class dino3D():
         
         self.prev_vs = prev_vs
         self.accs = accs
+        
         self.prev_rots = prev_rots
         self.acc_rots = acc_rots
         
