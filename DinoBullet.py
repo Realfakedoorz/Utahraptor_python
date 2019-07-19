@@ -632,9 +632,9 @@ class dino3D():
                                 
                 if t>1 and i > 10:
                     sc = 1
-                    self.maxforce == 500
+                    self.maxforce == 5000
                 else:
-                    self.maxforce = 500
+                    self.maxforce = 5000
                     
                 pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
@@ -690,7 +690,7 @@ class dino3D():
                         pickle.dump([self.elites], f)
         pb.disconnect(physicsClientId = simID)    
     
-    def WalkingGA(self, epochs = 10):
+    def WalkingGA(self, epochs = 10, select_n = 15):
         self.Disconnect()
         # Initialise server
         #self.runthreads([self.RunSRV, self.Connect])
@@ -711,9 +711,9 @@ class dino3D():
             for i in range(self.popsize):
                 self.fitnessWalk(i)
             gc.collect()
-            self.selectionWalk()
+            self.selectionWalk(select_n)
             gc.collect()
-            self.blendWalk()
+            self.blendWalk(select_n)
             gc.collect()
             self.mutateWalk(rate=max([0.2*(1-ep/(0.7*epochs)), 0.01]))
             with open('elites.dat', 'rb') as f:
@@ -783,9 +783,9 @@ class dino3D():
             else:
                 if t>1 and i > 10:
                     sc = 1
-                    self.maxforce == 500
+                    self.maxforce == 5000
                 else:
-                    self.maxforce = 500
+                    self.maxforce = 5000
                     
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
