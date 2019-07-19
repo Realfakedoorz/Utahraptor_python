@@ -535,10 +535,9 @@ class dino3D():
                     t_l = [-26.,  -17.,  194.,  122.]
                     if rd.rand() < rate:
                         if t!=0:
-                            self.population[i, 0, t] = rd.randint(-20,20)            #a0
+                            self.population[i, 0, t] = rd.randint(-5,5)            #a0
                         else:
-                            self.population[i, 0, t] = rd.randint(-20,0)
-                            
+                            self.population[i, 0, t] = rd.randint(-10,0)
                         self.population[i, 0, t] += t_l[t]
                 #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
@@ -565,9 +564,9 @@ class dino3D():
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
-            self.population[d, 0] = rd.randint(-20,20, size=4)            #a0
+            self.population[d, 0] = rd.randint(-5,5, size=4)            #a0
             self.population[d, 0] += [-26.,  -17.,  194.,  122.]
-            a = rd.randint(-20,0)
+            a = rd.randint(-10,0)
             self.population[d, 0, 1] = a-26
             for w in range(0,4):
                 self.population[d, 1, w] = rd.randint(-50,50)           #a1 1st amplitude
@@ -586,7 +585,7 @@ class dino3D():
         legT2   = self.population[popNum, 4]
         
         #offSet = self.popBodyOffsets[popNum]
-        T = 0.5
+        T = 0.7
         
         simID,botId = self.setStanding(simtype = pb.DIRECT, num=6)
         
@@ -607,8 +606,8 @@ class dino3D():
         speed = 0
         sc = 1
         ''' Modify the fkine function for this '''
-        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
-        if T>1.5: T=1.5
+        #T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0], legt0[1]+legamp[1], legt0[2]+legamp[2], legt0[3]+legamp[3] ])[0]/1000))
+        #if T>1.5: T=1.5
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
         
@@ -1069,6 +1068,57 @@ class dino3D():
         self.a2 = [ 2.52137472e+01,  1.59878619e+01,  1.17385969e+01, 1.98134763e+01]
         self.T2 = [ 9.08245134e-01, -2.30661017e-01, -4.74756371e-01, 1.27556671e+00]
         
-        
+      
+    def demo(self):
+        self.RunSRV(1)
+        time.sleep(1)
+        l = 0
+        for num in range(len(self.elites)):
+            self.Disconnect()
+
+
+            T = 0.7
+                            
+            simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
+            
+            if l==0:logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "demo.mp4")
+            l = 1
+            botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+            footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+            
+            self.Torques = []
+            
+            while pb.getBaseVelocity(botId)[0][1] < 0:
+                self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+                print(pb.getBaseVelocity(botId)[0][1])
+            
+            for i in range(10000):
+                t = float(i)*(self.T_fixed)
+                
+                            
+                angles = self.f4(num, t, T)
+                
+                pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                                 targetPositions=angles, 
+                                                 targetVelocities = [0]*9,
+                                                 forces = [self.maxforce]*9,
+                                                 physicsClientId = simID)
+                
+                self.Step(steps = 1, sleep = 1, cid=simID, botID=botId)
+                self.AdjustCamera(botID = botId, cid = simID)
+                
+                torques = []
+                for j in range(9):
+                    tmp, tmp, tmp, t = pb.getJointState(botId, j)
+                    torques.append(t)
+                self.Torques.append(torques)
+                
+                botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+                footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+                if botPos[2] < 0.55 or botPos[2] > 2 or footLoc > botPos[2]:
+                    break
+            pb.removeBody(botId)
+        pb.stopStateLogging(loggingId = logID)
+                    
     '''To get tarsa in line with tibia, angle should be (+) 133*np.pi/180
     to get foot in line with tarsa, angle should be (+)168*np.pi/180'''
