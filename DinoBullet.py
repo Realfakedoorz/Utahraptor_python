@@ -43,13 +43,15 @@ class dino3D():
         self.epochnum = 0
         self.dynAccOn = 1
         
+        self.stabilisexz = 0
+        
         self.k_p = 0.5
         self.k_i = 0
         self.i_int = 0
         
         self.order = 4
         
-        self.tailmove = 1
+        self.tailmove = 0
         self.SL = 1.5
         rd.seed()
     
@@ -619,7 +621,7 @@ class dino3D():
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
         for d in range(0,self.popsize):
-            self.population[d, 0] = rd.randint(-20,20, size=4)            #a0
+            self.population[d, 0] = rd.randint(-30,30, size=4)            #a0
             self.population[d, 0] += [-26.,  -17.,  194.,  122.]
             a = rd.randint(-10,0)
             self.population[d, 0, 1] = a-26
@@ -685,6 +687,17 @@ class dino3D():
                 ZMP = self.ZMP(botId, simID)
                 
                 footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+                botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+                
+                if self.stabilisexz == 1:
+                    botVel, botAng = pb.getBaseVelocity(botId, simID)
+                    
+                    bb = np.array(pb.getEulerFromQuaternion(botOrn))
+                    bb[2] = 0
+                    bb = pb.getQuaternionFromEuler(bb)
+                    pb.resetBasePositionAndOrientation(botId, botPos, bb, simID)
+                    pb.resetBaseVelocity(botId, botVel, botAng, simID)
+                
                 
                 ZMP = self.ZMP(botId, simID)
                 footLoc1 = pb.getLinkState(botId, linkIndex=3)[0][0:2]
@@ -817,14 +830,23 @@ class dino3D():
                 torques.append(t)
             self.Torques.append(torques)
             
-            botPos, botOrn = pb.getBasePositionAndOrientation(botId)
             footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+            botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+            
+            if self.stabilisexz == 1:
+                botVel, botAng = pb.getBaseVelocity(botId, simID)
+                
+                bb = np.array(pb.getEulerFromQuaternion(botOrn))
+                bb[2] = 0
+                bb = pb.getQuaternionFromEuler(bb)
+                pb.resetBasePositionAndOrientation(botId, botPos, bb, simID)
+                pb.resetBaseVelocity(botId, botVel, botAng, simID)
             
             if botPos[2] < self.scale*0.6 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
                 break
             #print(botPos)
         if log == 1:    
-            pb.stopStateLogging(loggingId = logID)
+            pb.stopStateLogging(loggingId = logID) 
         
         plt.figure()
         ax = plt.plot(np.array(self.Torques)[:,4:])
@@ -838,7 +860,7 @@ class dino3D():
         for i in range(100):
             x.append(i*T/100)
         #x = [i*T/100 for i in range(100)]
-        y = np.array([r.f4(-1, i*3.5/100, 3.5, 1) for i in range(100)])
+        y = np.array([r.f4(-1, i*3.5/100, 3.5, 1) for i in range(100)])*180/np.pi
         
         plt.plot(x,y[:,0], x, y[:,1], x, y[:,2]-133, x, y[:,3]-168)
         plt.grid()
@@ -1348,7 +1370,7 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'TestB.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'TestB.dat', 'TestC.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
