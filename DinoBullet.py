@@ -624,7 +624,7 @@ class dino3D():
                 #self.popBodyOffsets[i] = rd.randint(0,360)         
                         
     def generateWalk(self):
-        ''' Generate 20 random sets of parameters '''
+        ''' Generate random sets of walking TFS parameters '''
         self.population = np.zeros([self.popsize,9,4])
         self.popBodyOffsets = np.zeros(self.popsize)
         rd.seed()
@@ -650,13 +650,9 @@ class dino3D():
         self.dynAccOn = 1
         legt0   = self.population[popNum, 0]
         legamp  = self.population[popNum, 1]
-        legT    = self.population[popNum, 2]
         legamp2 = self.population[popNum, 3]
-        legT2   = self.population[popNum, 4]
         legamp3 = self.population[popNum, 5]
-        legT3   = self.population[popNum, 6]
         legamp4 = self.population[popNum, 7]
-        legT4   = self.population[popNum, 8]
         
         #offSet = self.popBodyOffsets[popNum]
         T = 0.7
@@ -666,23 +662,13 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        '''Deprecate this attempt at ramping? Seems to be sorted by velocity limits '''
-        walkbase = np.array([-26.,  -17.,  194.,  122., -26., 17., -194., -122, 0])
-        angs = np.array([legt0[0], legt0[1], legt0[2], legt0[3], legt0[0], -legt0[1], -legt0[2], -legt0[3], 0])
-        diff = angs-walkbase
-        
         dur = 0
         pencon = 0
         speed = 0
-        sc = 1
         OrnFit = 0
         ZMPdist = 0
-        
-        '''NOTE: Right, fuck this, time to get the feet flat and the tail working ''' 
-        
-        
-        ''' Modify the fkine function for this '''
-        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))
+
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
         if T>3.5: T=3.5
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
@@ -695,29 +681,14 @@ class dino3D():
                 dur += 1
                 t = float(i)*(self.T_fixed)
                 
-                #legamp[0]*np.sin(legamp[0]) + sc*legamp2[]
-                
-#                if t < T: #ramp up angle
-#                    angles = walkbase + (i*T/self.T_fixed)*diff
-#                else:
-                
                 angles = self.f4(popNum, t, T, 0, botOrn)
                 angles[8] = self.controlTail(botId, simID)
                 
-                #pb.resetJointState(botId, 3, angles[3], 0, simID)
-                #pb.resetJointState(botId, 7, angles[7], 0, simID)
-                
-                #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
-                #angles[3] = a_foot
-                #angles[7] = -a_foot
-                
-        
                 pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                                  targetPositions=angles, 
                                                  targetVelocities = [0]*9,
                                                  forces = [self.maxforce]*9,
                                                  physicsClientId = simID)
-                    #self.setLegs(angles, sleep = 0, botID = botId, cid = simID)
                     
                 self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
                 ZMP = self.ZMP(botId, simID)
@@ -751,7 +722,6 @@ class dino3D():
                 if botAngles[2] > 270 or botAngles[2] < 90:
                     OrnFit += 1
                     
-        footHeight = pb.getLinkState(bodyUniqueId = botId, linkIndex = 3, physicsClientId = simID)[0][2]
         fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
@@ -769,9 +739,9 @@ class dino3D():
         pb.disconnect(physicsClientId = simID)    
     
     def WalkingGA(self, epochs = 10, select_n = 15):
+        ''' Genetic algorithm for finding walking parameters '''
         self.Disconnect()
         # Initialise server
-        #self.runthreads([self.RunSRV, self.Connect])
         if self.popsize == 0:
             self.popsize = 60
             self.fitnesses = np.zeros(self.popsize)
@@ -801,6 +771,7 @@ class dino3D():
         pb.disconnect()
     
     def showBestWalk(self, log = 0, num = -1):
+        ''' Show fittest walk config in elites array '''
         self.Disconnect()
         self.RunSRV(1)
         time.sleep(1)
@@ -809,30 +780,18 @@ class dino3D():
         
         legt0 = self.elites[num][0]
         legamp = self.elites[num][1]
-        legT = self.elites[num][2]
         legamp2 = self.elites[num][3]
-        legT2   = self.elites[num][4]
         legamp3 = self.elites[num][5]
-        legT3 = self.elites[num][6]
         legamp4 = self.elites[num][7]
-        legT4 = self.elites[num][8]
         
-        #offSet = self.popBodyOffsets[popNum]
         T = 0.5
-        
-        walkbase = np.array([-26.,  -17.,  194.,  122., -26., 17., -194., -122, 0])
-        angs = np.array([legt0[0], legt0[1], legt0[2], legt0[3], legt0[0], -legt0[1], -legt0[2], -legt0[3], 0])
-        diff = angs-walkbase
         
         simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
-        heightDiff = botPos[2]-footLoc
-        sc = 1
-        OrnInit = botOrn
         
-        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))        
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
         
         self.Torques = []
@@ -848,12 +807,6 @@ class dino3D():
             angles = self.f4(num, t, T, 1, botOrn)
             angles[8] = self.controlTail(botId, simID)
             
-            #pb.resetJointState(botId, 3, angles[3], 0, simID)
-            #pb.resetJointState(botId, 7, angles[7], 0, simID)
-            #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
-            #angles[3] = a_foot
-            #angles[7] = -a_foot
-                              
             if i == 0:
                 if log == 1:
                     logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "walk_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
@@ -884,6 +837,7 @@ class dino3D():
     
     
     def f4(self, num, t, T, el=1, botOrn = [0,0,0,1]):
+        ''' Truncated fourier series angles finder '''
         if el == 1:
             legt0 = self.elites[num][0]
             legamp = self.elites[num][1]
@@ -953,6 +907,7 @@ class dino3D():
         return angles
     
     def ZMP(self, botID, simID):
+        ''' Find Zero Moment Point of robot '''
         g= 9.81
         Px = 0
         Py = 0
@@ -977,7 +932,7 @@ class dino3D():
             
     
     def dynAcc(self, botID, simID):
-        '''Finite diff for accelerations (1 time step, cba)'''
+        '''Single time step backwards FD for accelerations of body and all links'''
         prev_vs     = np.array(self.prev_vs, dtype=object)
         accs        = np.array(self.accs, dtype=object)
         prev_rots   = np.array(self.prev_rots, dtype=object)
@@ -1008,6 +963,7 @@ class dino3D():
         
     ''' Test etc macros '''
     def selectTail(self):
+        ''' Test a variety of k_ps and k_is for the tail '''
         self.saveload(1, 'TestTailAgainst.dat')
         besttime = 0
         best_vars = [0,0,0]
@@ -1028,6 +984,7 @@ class dino3D():
         self.k_p = best_vars[0]; self.k_i = best_vars[1]
 
     def controlTail(self, botId=0, simID=0, setpoint = 0):
+        ''' Control tail using PI - error based on rotational angle of body '''
         k_p = self.k_p
         k_i = self.k_i
         
@@ -1050,6 +1007,7 @@ class dino3D():
         return theta
     
     def runTailTest(self):
+        ''' Time how long robot stays up with new tail PI configuration '''
         num = -1
         legt0 = self.elites[num][0]
         legamp = self.elites[num][1]
@@ -1063,7 +1021,7 @@ class dino3D():
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)      
         
-        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))        
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
                 
         while pb.getBaseVelocity(botId)[0][1] < 0:
@@ -1089,11 +1047,9 @@ class dino3D():
             if botPos[2] < 0.55 or botPos[2] > 2:
                 break
         return t
-    
-    def testLegs(self):
-        self.setLegs(np.array([90-38, 180-83, 180-110, 63, 90-38, -(180-83), -(180-110), -63])*np.pi/180)
         
     def saveload(self, load = 1, file = "Angles.dat"):
+        ''' Save/load the solutions data to a .dat file '''
         if load == 1:
             with open(file, 'rb') as f:
                 [self.population, self.fitnesses, self.best, self.bestfit, self.elites, self.elitesfit] = pickle.load(f)
@@ -1103,6 +1059,7 @@ class dino3D():
 
     
     def setStanding(self, simtype = pb.SHARED_MEMORY, num=0, anglesset = 0, height = 0):
+        ''' Initialise robot with various testing configurations '''
         if num== 0:
             self.botStartPos = self.scale*np.array([0.08300925547894937, 0.002430267340262286, 0.8458748281523655])
             botOrn = [3.940743050000044e-05, 0.02249885497625592, -0.004428984037646466, 0.9997370574667152]
@@ -1202,6 +1159,7 @@ class dino3D():
         return cid, botId
     
     def penConsts(self, cid, botID):
+        ''' Penalise constraint violation '''
         angles = []
         for i in range(8):
             angles.append(pb.getJointState(bodyUniqueId = botID, jointIndex = i)[0])
@@ -1232,6 +1190,7 @@ class dino3D():
         return penalty
     
     def showIm(self,cid, show = 0, botID = 0):
+        ''' Displays 2D plot image of bot final state - saves time in viewing GA progress '''
         img = [[1, 2, 3] * 50] * 100  #np.random.rand(200, 320)
         
         image = plt.imshow(img, interpolation='none', animated=True, label="blah")
@@ -1280,6 +1239,7 @@ class dino3D():
         plt.pause(0.5)
         
     def saveVid(self, name = "file.mp4"):
+        ''' Save demonstration as mp4 file '''
         FFMpegWriter = manimation.writers['ffmpeg']
         metadata = dict(title='Standing Evolution', artist='',
                         comment='Sam Wilcock')
@@ -1296,6 +1256,7 @@ class dino3D():
         self.vid = []
         
     def fkine(self, angles=[0,0,0,0]):
+        ''' Forward kinematics for leg '''
         L_femur = 565
         L_tibia = 505
         L_tarsa = 50
@@ -1320,18 +1281,10 @@ class dino3D():
         tarsus = tibia+ np.array([L_tarsa*(c4*c23 - s4*s23), L_tarsa*(c4*s23 + s4*c23)])
         toe = tarsus+   np.array([L_foot*(c23*c45 - s23*s45), L_foot*(c23*s45 + s23*c45)])
         
-        return tarsus
-    
-    
-    def setWalkParams(self):
-        self.a0 = [-4.30000000e+01, -4.60000000e+01,  2.38160506e+02, 1.54935738e+02]
-        self.a1 = [-3.98144313e+01, -9.74788745e+00, -3.60004156e+00, -6.70286657e+00]
-        self.T1 = [ 1.00555825e+00,  5.47790755e-02,  2.89667092e-01, 5.11000934e-01]
-        self.a2 = [ 2.52137472e+01,  1.59878619e+01,  1.17385969e+01, 1.98134763e+01]
-        self.T2 = [ 9.08245134e-01, -2.30661017e-01, -4.74756371e-01, 1.27556671e+00]
-        
+        return [femur, tibia, tarsus, toe]      
       
     def demo(self):
+        ''' Makes a video of GA evolution - best solutions '''
         self.RunSRV(1)
         time.sleep(1)
         l = 0
@@ -1383,6 +1336,13 @@ class dino3D():
         pb.stopStateLogging(loggingId = logID)
      
     def loadInWalk(self):
-        self.saveload(1, 'TestTailAgainst.dat')               
-    '''To get tarsa in line with tibia, angle should be (+) 133*np.pi/180
+        ''' Load in current best found parameter set '''
+        self.saveload(1, 'TestTailAgainst.dat')     
+
+
+          
+    '''
+    Notes:
+    
+    To get tarsa in line with tibia, angle should be (+) 133*np.pi/180
     to get foot in line with tarsa, angle should be (+)168*np.pi/180'''
