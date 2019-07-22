@@ -51,18 +51,11 @@ class dino3D():
         self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
         self.order = 1
         
+        self.tailmove = 0
+        
         #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         rd.seed()
-        
-    def help(self):
-        string = '''
-        Need to fix Fourier series
-        Check the function out first in plots
-        
-        
-        '''
-        print(string)
-        
+    
         ''' Thread scheduler '''
     def runthreads(self, cid):
         threads = []
@@ -1008,13 +1001,14 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         rot = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
         
-        k_p = 1.5
+        k_p = 0.5
         theta = k_p*rot
         
         if abs(theta) > 20:
             theta = 20*np.sign(theta)
             
-            
+        if self.tailmove == 0: theta = 0
+        
         return theta
     
     def testLegs(self):
