@@ -43,7 +43,13 @@ class dino3D():
         self.epochnum = 0
         self.dynAccOn = 1
         
+        self.k_p = 0.5
+        self.k_i = 0
+        self.i_int = 0
+        
         self.order = 2
+        
+        self.tailmove = 1
         
         rd.seed()
     
@@ -113,8 +119,6 @@ class dino3D():
         
         self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
         self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
-        
-        self.tailmove = 0
         
         botID = pb.loadURDF("./Model/FootUtahBody.SLDASM.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
                                  botStartOrientation, physicsClientId = cid,
@@ -1003,13 +1007,40 @@ class dino3D():
         self.acc_rots = acc_rots
         
     ''' Test etc macros '''
-    
+    def selectTail(self):
+        self.saveload(1, 'TestTailAgainst.dat')
+        besttime = 0
+        best_vars = [0,0,0]
+        
+        self.i_int = 0
+        for a in range(-20, 20):
+            for b in range(-20, 20):
+                    self.k_p = a*0.1
+                    self.k_i = b*0.00001
+                    
+                    time = self.runTailTest()
+                    
+                    if time>besttime:
+                        besttime = time
+                        best_vars = [self.k_p, self.k_i]
+                        print(best_vars)
+        print(best_vars)
+        self.k_p = best_vars[0]; self.k_i = best_vars[1]
+
     def controlTail(self, botId=0, simID=0, setpoint = 0):
+        k_p = self.k_p
+        k_i = self.k_i
+        
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
-        rot = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
+        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
+        
+        self.i_int += err
+        if abs(self.i_int >= 5*np.pi/180):
+            self.i_int = np.sign(self.i_int)*5*np.pi/180
         
         k_p = 0.5
-        theta = k_p*rot
+        theta = k_p*err + k_i*self.i_int
+        
         
         if abs(theta) > 20:
             theta = 20*np.sign(theta)
@@ -1017,6 +1048,47 @@ class dino3D():
         if self.tailmove == 0: theta = 0
         
         return theta
+    
+    def runTailTest(self):
+        num = -1
+        legt0 = self.elites[num][0]
+        legamp = self.elites[num][1]
+        legamp2 = self.elites[num][3]
+        legamp3 = self.elites[num][5]
+        
+        #offSet = self.popBodyOffsets[popNum]
+        T = 0.5
+        
+        simID,botId = self.setStanding(simtype = pb.DIRECT, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
+        
+        botPos, botOrn = pb.getBasePositionAndOrientation(botId)      
+        
+        T = abs(1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[0]/1000))        
+        if T>3.5: T=3.5
+                
+        while pb.getBaseVelocity(botId)[0][1] < 0:
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            print(pb.getBaseVelocity(botId)[0][1])
+        
+        for i in range(10000):
+            t = float(i)*(self.T_fixed)
+                        
+            angles = self.f4(num, t, T, 1, botOrn)
+            angles[8] = self.controlTail(botId, simID)
+            
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                             targetPositions=angles, 
+                                             targetVelocities = [0]*9,
+                                             forces = [self.maxforce]*9,
+                                             physicsClientId = simID)
+            
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            
+            
+            botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+            if botPos[2] < 0.55 or botPos[2] > 2:
+                break
+        return t
     
     def testLegs(self):
         self.setLegs(np.array([90-38, 180-83, 180-110, 63, 90-38, -(180-83), -(180-110), -63])*np.pi/180)
@@ -1309,6 +1381,8 @@ class dino3D():
                     break
             pb.removeBody(botId)
         pb.stopStateLogging(loggingId = logID)
-                    
+     
+    def loadInWalk(self):
+        self.saveload(1, 'TestTailAgainst.dat')               
     '''To get tarsa in line with tibia, angle should be (+) 133*np.pi/180
     to get foot in line with tarsa, angle should be (+)168*np.pi/180'''
