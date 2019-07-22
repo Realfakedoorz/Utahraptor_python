@@ -700,8 +700,11 @@ class dino3D():
 #                    angles = walkbase + (i*T/self.T_fixed)*diff
 #                else:
                 
-                angles = self.f4(popNum, t, T, el=0)
+                angles = self.f4(popNum, t, T, 0, botOrn)
                 angles[8] = self.controlTail(botId, simID)
+                
+                #pb.resetJointState(botId, 3, angles[3], 0, simID)
+                #pb.resetJointState(botId, 7, angles[7], 0, simID)
                 
                 #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
                 #angles[3] = a_foot
@@ -841,8 +844,11 @@ class dino3D():
             t = float(i)*(self.T_fixed)
             
                         
-            angles = self.f4(num, t, T)
+            angles = self.f4(num, t, T, 1, botOrn)
             angles[8] = self.controlTail(botId, simID)
+            
+            #pb.resetJointState(botId, 3, angles[3], 0, simID)
+            #pb.resetJointState(botId, 7, angles[7], 0, simID)
             #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
             #angles[3] = a_foot
             #angles[7] = -a_foot
@@ -876,7 +882,7 @@ class dino3D():
     
     
     
-    def f4(self, num, t, T, el=1):
+    def f4(self, num, t, T, el=1, botOrn = [0,0,0,1]):
         if el == 1:
             legt0 = self.elites[num][0]
             legamp = self.elites[num][1]
@@ -939,6 +945,10 @@ class dino3D():
         
         #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
         #angles[7] = -angles[3]
+        
+        angles[3] = 5.29929738517979 - (pb.getEulerFromQuaternion(botOrn)[1] + angles[0] + angles[1] + angles[2])
+        angles[7] = -angles[3]
+        
         return angles
     
     def ZMP(self, botID, simID):
