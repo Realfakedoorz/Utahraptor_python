@@ -943,8 +943,8 @@ class dino3D():
         #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
         #angles[7] = -angles[3]
         
-        angles[3] = 5.29929738517979 - (pb.getEulerFromQuaternion(botOrn)[1] + angles[0] + angles[1] + angles[2])
-        angles[7] = -angles[3]
+        #angles[3] = 5.29929738517979 - (pb.getEulerFromQuaternion(botOrn)[1] + angles[0] + angles[1] + angles[2])
+        #angles[7] = -angles[3]
         
         return angles
     
