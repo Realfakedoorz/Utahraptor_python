@@ -35,7 +35,7 @@ class dino3D():
         self.pool = Pool(processes=self.CPU_cores)
         self.botStartPos = [0,0,1.5]
         self.maxforce = 9001 # Pretty arbitrary
-        self.scale = 1
+        self.scale = 0.2
         self.Disconnect()
         self.vid = []
         self.elites = []
@@ -47,10 +47,10 @@ class dino3D():
         self.k_i = 0
         self.i_int = 0
         
-        self.order = 2
+        self.order = 4
         
         self.tailmove = 1
-        
+        self.SL = 1.5
         rd.seed()
     
         ''' Thread scheduler '''
@@ -137,7 +137,7 @@ class dino3D():
         for i in range(0,numJoints):
             pb.setJointMotorControl2(bodyUniqueId = botID, jointIndex = i, controlMode = pb.POSITION_CONTROL, force = 0)
         
-        pb.changeDynamics(bodyUniqueId = 0, linkIndex = -1, lateralFriction = 0.9)
+        pb.changeDynamics(bodyUniqueId = 0, linkIndex = -1, lateralFriction = 0.8)
         
         return cid, botID
     
@@ -659,7 +659,7 @@ class dino3D():
         OrnFit = 0
         ZMPdist = 0
 
-        T = abs(self.scale*1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
+        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
         if T>3.5: T=3.5
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
@@ -668,7 +668,7 @@ class dino3D():
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
         
         for i in range(4000):
-            if botPos[2] > self.scale*0.55 and botPos[2] < self.scale*1.6 and footLoc < self.scale*0.4 and footLoc < botPos[2]:
+            if botPos[2] > self.scale*0.6 and botPos[2] < self.scale*1.6 and footLoc < self.scale*0.4 and footLoc < botPos[2]:
                 dur += 1
                 t = float(i)*(self.T_fixed)
                 
@@ -713,7 +713,7 @@ class dino3D():
                 if botAngles[2] > 270 or botAngles[2] < 90:
                     OrnFit += 1
                     
-        fit = (t/self.T_fixed)*10000 + botPos[0] * 250000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*1000000 + botPos[0] * 2500000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -782,7 +782,7 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        T = abs(self.scale*1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
         
         self.Torques = []
@@ -790,7 +790,7 @@ class dino3D():
         while pb.getBaseVelocity(botId)[0][1] < 0:
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
             print(pb.getBaseVelocity(botId)[0][1])
-        
+
         for i in range(10000):
             t = float(i)*(self.T_fixed)
             
@@ -819,14 +819,31 @@ class dino3D():
             
             botPos, botOrn = pb.getBasePositionAndOrientation(botId)
             footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
-            if botPos[2] < self.scale*0.55 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
+            
+            if botPos[2] < self.scale*0.6 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
                 break
             #print(botPos)
         if log == 1:    
             pb.stopStateLogging(loggingId = logID)
-        plt.plot(np.array(self.Torques)[:,4:])
+        
+        plt.figure()
+        ax = plt.plot(np.array(self.Torques)[:,4:])
         plt.legend(['Femur', 'Tibia', 'Tarsa', 'Foot', 'Tail'])
-    
+        plt.grid()
+        
+        print(T)
+       
+        plt.figure()
+        x = []
+        for i in range(100):
+            x.append(i*T/100)
+        #x = [i*T/100 for i in range(100)]
+        y = np.array([r.f4(-1, i*3.5/100, 3.5, 1) for i in range(100)])
+        
+        plt.plot(x,y[:,0], x, y[:,1], x, y[:,2]-133, x, y[:,3]-168)
+        plt.grid()
+        plt.xlim([0, T])
+        plt.legend(['Femur', 'Tibia', 'Tarsa', 'Foot'])
     
     
     def f4(self, num, t, T, el=1, botOrn = [0,0,0,1]):
@@ -1014,7 +1031,7 @@ class dino3D():
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)      
         
-        T = abs(self.scale*1.5/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
                 
         while pb.getBaseVelocity(botId)[0][1] < 0:
@@ -1324,15 +1341,18 @@ class dino3D():
                 
                 botPos, botOrn = pb.getBasePositionAndOrientation(botId)
                 footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
-                if botPos[2] < 0.55 or botPos[2] > 2 or footLoc > botPos[2]:
+                if botPos[2] < self.scale*0.55 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
                     break
             pb.removeBody(botId)
         pb.stopStateLogging(loggingId = logID)
      
-    def loadInWalk(self):
+    def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'TestB.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
-        self.saveload(1,'TestA.dat')
+        #self.saveload(1,'TestA.dat')
+        #self.saveload(1,'ScaledWalk.dat')
+        self.saveload(1,files[num])
 
           
     '''
