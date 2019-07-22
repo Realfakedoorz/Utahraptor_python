@@ -34,7 +34,7 @@ class dino3D():
         self.popsize = 0
         self.pool = Pool(processes=self.CPU_cores)
         self.botStartPos = [0,0,1.5]
-        self.maxforce = 9000
+        self.maxforce = 9001 # Pretty arbitrary
         self.scale = 1
         self.Disconnect()
         self.vid = []
@@ -43,17 +43,8 @@ class dino3D():
         self.epochnum = 0
         self.dynAccOn = 1
         
-        # Finite diff for accelerations
-        self.prev_vs = [0,0,0,0,0,0,0,0,0,0]
-        self.accs = [0,0,0,0,0,0,0,0,0,0]
+        self.order = 2
         
-        self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
-        self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
-        self.order = 1
-        
-        self.tailmove = 0
-        
-        #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         rd.seed()
     
         ''' Thread scheduler '''
@@ -81,6 +72,7 @@ class dino3D():
         return physicsClient
 
     def Step(self, steps = 10000, sleep = 1, cid=0, botID=0):
+        ''' Step simulation steps times. If sleep == 0, no wait between steps '''
         for i in range(0, steps):
             pb.stepSimulation(cid)
             
@@ -89,6 +81,7 @@ class dino3D():
             self.dynAcc(botID, cid)
             
     def AdjustCamera(self, dist = 3, botID=0, cid=0):
+        ''' Move camera to face robot '''
         botPos, botOrn = pb.getBasePositionAndOrientation(botID)
         pb.resetDebugVisualizerCamera( cameraDistance=dist*self.scale, 
                                           cameraYaw=0.0, 
@@ -104,21 +97,24 @@ class dino3D():
                 pass
         
     def RunSRV(self, GUI=1):
+        ''' Start a server running '''
         if GUI == 1:
             os.startfile(self.SHARED_GUI_FILE)
         else:
             os.startfile(self.SHARED_SRV_FILE)
     
     def Init(self,botStartOrientation, pb_type = pb.DIRECT):
+        ''' Initialise a robot on the plane '''
         cid = self.Connect(grav=1, pb_type_connection = pb_type)
         # Reset acceleration variables
+        # Finite difference for accelerations
         self.prev_vs = [0,0,0,0,0,0,0,0,0,0]
         self.accs = [0,0,0,0,0,0,0,0,0,0]
         
         self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
         self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
         
-        #time.sleep(0.1)
+        self.tailmove = 0
         
         botID = pb.loadURDF("./Model/FootUtahBody.SLDASM.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
                                  botStartOrientation, physicsClientId = cid,
@@ -140,6 +136,7 @@ class dino3D():
         return cid, botID
     
     def setLegs(self, angles, sleep = 0, botID = 0, cid = 0):
+        ''' Set the initial pose of the legs '''
         for i in range(8):
             pb.resetJointState(botID, i, targetValue = ((angles[i])), physicsClientId = cid)
                 
@@ -940,8 +937,8 @@ class dino3D():
             angles = (f0+f1+f2+f3+f4)*np.pi/180
            
                 
-        angles[2] = 168*np.pi/180
-        angles[6] = -angles[2]
+        #angles[2] = 194*np.pi/180
+        #angles[6] = -angles[2]
         
         #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
         #angles[7] = -angles[3]
