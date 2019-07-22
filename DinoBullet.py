@@ -708,6 +708,7 @@ class dino3D():
 #                else:
                 
                 angles = self.f4(popNum, t, T, el=0)
+                angles[8] = self.controlTail(botId, simID)
                 
                 #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
                 #angles[3] = a_foot
@@ -848,7 +849,7 @@ class dino3D():
             
                         
             angles = self.f4(num, t, T)
-            
+            angles[8] = self.controlTail(botId, simID)
             #a_foot = (pb.getEulerFromQuaternion(OrnInit)[1]+angles[0]+angles[1]+angles[2]-53*np.pi/180)
             #angles[3] = a_foot
             #angles[7] = -a_foot
@@ -939,6 +940,8 @@ class dino3D():
         elif self.order == 4:
             angles = (f0+f1+f2+f3+f4)*np.pi/180
             
+        angles[2] = 168*np.pi/180
+        angles[6] = -angles[2]
         return angles
     
     def ZMP(self, botID, simID):
@@ -996,6 +999,14 @@ class dino3D():
         self.acc_rots = acc_rots
         
     ''' Test etc macros '''
+    
+    def controlTail(self, botId=0, simID=0, setpoint = 0):
+        botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+        rot = pb.getEulerFromQuaternion(botOrn)[2]
+        
+        k_p = 0.1
+        
+        return k_p * rot
     
     def testLegs(self):
         self.setLegs(np.array([90-38, 180-83, 180-110, 63, 90-38, -(180-83), -(180-110), -63])*np.pi/180)
