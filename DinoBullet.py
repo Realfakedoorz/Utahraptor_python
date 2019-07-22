@@ -44,12 +44,12 @@ class dino3D():
         self.dynAccOn = 1
         
         # Finite diff for accelerations
-        self.prev_vs = [0,0,0,0,0,0,0,0,0]
-        self.accs = [0,0,0,0,0,0,0,0,0]
+        self.prev_vs = [0,0,0,0,0,0,0,0,0,0]
+        self.accs = [0,0,0,0,0,0,0,0,0,0]
         
-        self.prev_rots = [0,0,0,0,0,0,0,0,0]
-        self.acc_rots = [0,0,0,0,0,0,0,0,0]
-        self.order = 4
+        self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
+        self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
+        self.order = 1
         
         #pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         rd.seed()
@@ -119,11 +119,11 @@ class dino3D():
     def Init(self,botStartOrientation, pb_type = pb.DIRECT):
         cid = self.Connect(grav=1, pb_type_connection = pb_type)
         # Reset acceleration variables
-        self.prev_vs = [0,0,0,0,0,0,0,0,0]
-        self.accs = [0,0,0,0,0,0,0,0,0]
+        self.prev_vs = [0,0,0,0,0,0,0,0,0,0]
+        self.accs = [0,0,0,0,0,0,0,0,0,0]
         
-        self.prev_rots = [0,0,0,0,0,0,0,0,0]
-        self.acc_rots = [0,0,0,0,0,0,0,0,0]
+        self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
+        self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
         
         #time.sleep(0.1)
         
@@ -588,14 +588,14 @@ class dino3D():
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
                 for t in range(4):
-                    '''t_l = [-26.,  -17.,  194.,  122.]
+                    t_l = [-26.,  -17.,  194.,  122.]
                     if rd.rand() < rate:
                         if t!=0:
                             self.population[i, 0, t] = rd.randint(-5,5)            #a0
                         else:
                             self.population[i, 0, t] = rd.randint(-10,0)
                         self.population[i, 0, t] += t_l[t]
-                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs'''
+                #    self.population[i, 0, w] = rd.randint(0,360) #theta0xs
                     
                 if rd.rand() < rate:
                     self.population[i, 1, w] += rd.rand()*10-5#amplitudes
@@ -650,7 +650,7 @@ class dino3D():
                 self.population[d, 8, w] = 2*rd.rand()-1  #T2 2nd phase shift
             
             self.popBodyOffsets[d] = rd.randint(0,360)
-            self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
+            #self.population[d,0,:] = [-26.,  -17.,  194.,  122.]
       
     def fitnessWalk(self, popNum = 0):
         self.dynAccOn = 1
@@ -939,9 +939,13 @@ class dino3D():
             angles = (f0+f1+f2+f3)*np.pi/180
         elif self.order == 4:
             angles = (f0+f1+f2+f3+f4)*np.pi/180
-            
+           
+                
         angles[2] = 168*np.pi/180
         angles[6] = -angles[2]
+        
+        #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
+        #angles[7] = -angles[3]
         return angles
     
     def ZMP(self, botID, simID):
@@ -950,7 +954,7 @@ class dino3D():
         Py = 0
         denom = 0
         
-        for i in range(9):
+        for i in range(10):
             m_l     = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[0]
             I       = pb.getDynamicsInfo(bodyUniqueId = botID, linkIndex = i-1, physicsClientId = simID)[2]
             if i == 0:
@@ -978,7 +982,7 @@ class dino3D():
         vs = prev_vs
         rots = prev_rots
 
-        for i in range(9):
+        for i in range(10):
             if i == 0:
                 state = np.array(pb.getBaseVelocity(bodyUniqueId = botID, physicsClientId = simID))
             else:
@@ -1002,11 +1006,16 @@ class dino3D():
     
     def controlTail(self, botId=0, simID=0, setpoint = 0):
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
-        rot = pb.getEulerFromQuaternion(botOrn)[2]
+        rot = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
         
-        k_p = 0.1
+        k_p = 1.5
+        theta = k_p*rot
         
-        return k_p * rot
+        if abs(theta) > 20:
+            theta = 20*np.sign(theta)
+            
+            
+        return theta
     
     def testLegs(self):
         self.setLegs(np.array([90-38, 180-83, 180-110, 63, 90-38, -(180-83), -(180-110), -63])*np.pi/180)
