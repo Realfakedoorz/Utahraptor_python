@@ -1471,7 +1471,7 @@ class dino3D():
         if T>3.5: T=3.5
         
         #print(T)
-        T = 2
+        T = 1.8
         self.Torques = []
         
         kp = 0 # Keypress - prevent bounce
