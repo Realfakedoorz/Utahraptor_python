@@ -668,7 +668,7 @@ class dino3D():
         OrnFit = 0
         ZMPdist = 0
 
-        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
+        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
         if T>3.5: T=3.5
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
@@ -802,7 +802,7 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
         #print(T)
         #T = 2
@@ -1139,7 +1139,6 @@ class dino3D():
                                              physicsClientId = simID)
             
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
-            
             
             botPos, botOrn = pb.getBasePositionAndOrientation(botId)
             if botPos[2] < self.scale*0.55 or botPos[2] > self.scale*2:
