@@ -21,6 +21,7 @@ from pympler.tracker import SummaryTracker
 tracker = SummaryTracker()
 import gc
 from datetime import datetime
+import keyboard
 
 class dino3D():
     def __init__(self):
@@ -797,8 +798,11 @@ class dino3D():
         
         T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
         if T>3.5: T=3.5
-        
+        #print(T)
+        #T = 2
         self.Torques = []
+        
+        kp = 0 # Keypress - prevent bounce
         
         while pb.getBaseVelocity(botId)[0][1] < 0:
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
@@ -847,12 +851,24 @@ class dino3D():
             #print(botPos)
             upKey = pb.B3G_UP_ARROW
             downKey = pb.B3G_DOWN_ARROW
-
+            
+            '''
             keys = pb.getKeyboardEvents(simID)
             if upKey in keys and keys[upKey]&pb.KEY_WAS_TRIGGERED:
                 T -= 0.1; print(T)
             if downKey in keys and keys[downKey]&pb.KEY_WAS_TRIGGERED:
-                T += 0.1; print(T)
+                T += 0.1; print(T)'''
+            if keyboard.is_pressed('w') and i-10 >= kp:
+                T -= 0.1
+                kp = i
+                print(T)
+            elif keyboard.is_pressed('s') and i-10 >= kp:
+                T += 0.1
+                kp = i
+                print(T)
+            elif keyboard.is_pressed('return'):
+                break
+            
                 
         if log == 1:    
             pb.stopStateLogging(loggingId = logID) 
