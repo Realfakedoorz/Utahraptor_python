@@ -672,7 +672,7 @@ class dino3D():
         ZMPdist = 0
 
         T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
-        if T>1.5: T=1.5
+        if T>2.3: T=2.3
         lin_vel, ang_vel= pb.getBaseVelocity(botId)
         
         
@@ -780,7 +780,7 @@ class dino3D():
             gc.collect()
             self.means.append(np.mean(self.fitnesses))
             
-        pb.disconnect()
+        self.Disconnect()
     
     def showBestWalk(self, log = 0, num = -1):
         ''' Show fittest walk config in elites array '''
@@ -804,7 +804,7 @@ class dino3D():
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
         T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
-        if T>1.5: T=1.5
+        if T>2.3: T=2.3
         #print(T)
         #T = 2
         self.Torques = []
@@ -1416,7 +1416,7 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat', 'Walking1.dat', 'Walking1a.dat', 'Walking2.dat', 'Running1.dat', 'Running2.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
@@ -1447,11 +1447,11 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
-        if T>3.5: T=3.5
+        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        if T>2.3: T=2.3
         
         #print(T)
-        T = 1.8
+        #T = 1.8
         self.Torques = []
         
         kp = 0 # Keypress - prevent bounce
@@ -1461,10 +1461,10 @@ class dino3D():
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
             print(pb.getBaseVelocity(botId)[0][1])
 
-        while(kp == 0):
+        '''while(kp == 0):
             self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
             if keyboard.is_pressed('1'):
-                kp = 1
+                kp = 1'''
             
         for i in range(10000000):
             t = float(i)*(self.T_fixed)
