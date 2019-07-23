@@ -959,7 +959,7 @@ class dino3D():
             angles = (f0+f1+f2+f3+f4)*np.pi/180
            
                 
-        #angles[2] = 194*np.pi/180
+        #angles[2] = 133*np.pi/180
         #angles[6] = -angles[2]
         
         #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
@@ -1054,7 +1054,7 @@ class dino3D():
         acc_lim = T_lim/I_t # Like 4000 rad.s^-1
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
-        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
+        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint%2*np.pi
         
         #let
         if self.taillim == 0:
@@ -1066,7 +1066,7 @@ class dino3D():
         #print(err)
         theta = x
         
-        if abs(err) < 10*np.pi/180: # Don't act on small errors
+        if abs(err) < 30*np.pi/180: # Don't act on small errors
             theta = self.tailtheta
             
         actual = pb.getJointState(botId, 8, simID)[0]
