@@ -55,15 +55,19 @@ class dino3D():
         self.SL = 1.5
         rd.seed()
     
-        ''' Thread scheduler '''
-    def runthreads(self, cid):
+        
+        
+    '''Environment functions '''
+    
+    def runThreads(self, cid):
+        ''' Thread scheduler. Pybullet doesn't seem to like this '''
         threads = []
         t = threading.Thread(target = self.showIm, args = (cid,))
         threads.append(t)
         t.start()
     
-    ''' Workers for interfacing with pybullet '''
     def Connect(self, grav = 1, pb_type_connection = pb.SHARED_MEMORY):
+        ''' Connect to pybullet server app '''
         physicsClient = pb.connect(pb_type_connection)
         
         pb.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
@@ -75,7 +79,6 @@ class dino3D():
                                      numSubSteps = 4)
         
         self.planeId = pb.loadURDF("plane100.urdf", globalScaling = self.scale)
-        
         
         return physicsClient
 
@@ -98,11 +101,12 @@ class dino3D():
                                           physicsClientId = cid)
     
     def Disconnect(self):
+        ''' Disconnect any and all instances of bullet '''
         for i in range(100):
             try:
                 pb.disconnect(i)
             except:
-                pass
+                pass # Don't whinge about non-existent servers
         
     def RunSRV(self, GUI=1):
         ''' Start a server running '''
@@ -148,6 +152,7 @@ class dino3D():
         for i in range(8):
             pb.resetJointState(botID, i, targetValue = ((angles[i])), physicsClientId = cid)
                 
+            # Sleepy time
             if sleep != 0:
                 time.sleep(sleep)
       
@@ -159,6 +164,7 @@ class dino3D():
         fit_tmp = self.fitnesses
         self.fittotal = 0
         
+        # Form of normalisation
         fitness = self.fitnesses-min(self.fitnesses)+1
         
         for i in range(0,self.popsize):
@@ -200,6 +206,7 @@ class dino3D():
             self.fitnesses[i] = self.fitnessStanding(i); self.fittotal += self.fitnesses[i,0]'''
         
     def fitnessStanding(self, popNum = 0):
+        ''' Test a walking parameter set's fitness '''
         angles = self.population[popNum][0]
         
         botStartOrientation = pb.getQuaternionFromEuler([0,self.population[popNum][1],0])
@@ -286,26 +293,14 @@ class dino3D():
                     self.elites.append(self.population[popNum])
                     self.elitesfit.append(self.fitnesses[popNum])
                     print("New best fitness {:.0f}".format(self.bestfit))
-                    #print("\nIn fit, {:.3f}".format(self.elites[-1][0][0]))
                     with open('elites.dat', 'wb') as f:
                         pickle.dump([self.elites], f)
                     self.showIm(simID, botID = botId)
-                    #print(footOrn)
-        '''
-        if fit > self.bestfit:
-            self.bestfit = fit
-            self.best2 = self.best
-            self.best = self.population[popNum]
-            self.elites.append(self.population[popNum])
-            self.elitesfit.append(self.fitnesses[popNum])
-            print("New best fitness {:.0f}".format(fit))
-            print("\nIn fit, {:.3f}".format(self.elites[-1][0][0]))
-            #self.showIm(simID)
-            #print(footOrn)'''
         
         pb.disconnect(physicsClientId = simID)
         
     def blendStanding(self, select_n = 20):
+        ''' Blend (BLX-alpha) best parents up to generate the children '''
         sort = np.argsort(-self.fitnesses)
         n = select_n
         while n < self.popsize:
@@ -321,6 +316,7 @@ class dino3D():
         #print("\nIn blend, {:.3f}".format(self.elites[-1][0][0]))
         
     def mutateStanding(self, rate = 0.01):
+        ''' Allow random mutations of standing genomes '''
         #print("\nIn mutate1, {:.3f}".format(self.elites[-1][0][0]))
         for i in range(0,self.popsize):
             if rd.rand() < rate:
@@ -340,6 +336,7 @@ class dino3D():
         '''print("\nIn mutate, {:.3f}".format(self.elites[-1][0][0]))'''
                         
     def generateStanding(self):
+        ''' Generate random sets of standing angles '''
         class angles:
             def __init__(self): 
                 self.theta = []
@@ -368,6 +365,7 @@ class dino3D():
         return angle_return
          
     def showBestStanding(self, num = -1, log = 0):
+        ''' Show fittest standing config in elites array '''
         self.Disconnect()
         self.RunSRV(1)
         time.sleep(1)
@@ -400,8 +398,8 @@ class dino3D():
         if log == 1:
             pb.stopStateLogging(logID)
         
-       
     def StandingGA(self, epochs = 10):
+        ''' Genetic algorithm for finding standing parameters '''
         self.epochnum = 0
         
         self.Disconnect()
@@ -531,6 +529,7 @@ class dino3D():
             n+=1
         
     def mutateWalk_Old(self, rate = 0.01):
+        ''' Allow random mutations of walking genomes '''
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
                 for t in range(4):
@@ -571,6 +570,7 @@ class dino3D():
                 #self.popBodyOffsets[i] = rd.randint(0,360)
                 
     def mutateWalk(self, rate = 0.01):
+        ''' Allow random mutations of walking genomes '''
         for i in range(0,self.popsize):
             for w in range(0, len(self.population[0,0,:])):
                 for t in range(4):
@@ -726,7 +726,7 @@ class dino3D():
                 if botAngles[2] > 270 or botAngles[2] < 90:
                     OrnFit += 1
                     
-        fit = (t/self.T_fixed)*1000000 + botPos[0] * 2500000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*1000000 + botPos[0] * 25000000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -742,12 +742,12 @@ class dino3D():
                         pickle.dump([self.elites], f)
         pb.disconnect(physicsClientId = simID)    
     
-    def WalkingGA(self, epochs = 10, select_n = 15):
+    def WalkingGA(self, epochs = 10, popsize = 300, select_n = 15):
         ''' Genetic algorithm for finding walking parameters '''
         self.Disconnect()
         # Initialise server
-        if self.popsize == 0:
-            self.popsize = 60
+        if self.popsize != popsize:
+            self.popsize = popsize
             self.fitnesses = np.zeros(self.popsize)
             self.population = np.zeros([self.popsize,5,4])
             self.popBodyOffsets = np.zeros(self.popsize)
@@ -845,6 +845,15 @@ class dino3D():
             if botPos[2] < self.scale*0.6 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
                 break
             #print(botPos)
+            upKey = pb.B3G_UP_ARROW
+            downKey = pb.B3G_DOWN_ARROW
+
+            keys = pb.getKeyboardEvents(simID)
+            if upKey in keys and keys[upKey]&pb.KEY_WAS_TRIGGERED:
+                T -= 0.1; print(T)
+            if downKey in keys and keys[downKey]&pb.KEY_WAS_TRIGGERED:
+                T += 0.1; print(T)
+                
         if log == 1:    
             pb.stopStateLogging(loggingId = logID) 
         
@@ -1370,7 +1379,7 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'TestB.dat', 'TestC.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'ActualWalking.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
