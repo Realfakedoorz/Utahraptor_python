@@ -43,7 +43,7 @@ class dino3D():
         self.elitesfit = []
         self.epochnum = 0
         self.dynAccOn = 1
-        
+        self.direction = 0
         self.stabilisexz = 0
         
         self.k_p = 0.5
@@ -1080,28 +1080,28 @@ class dino3D():
         
         #let
         if self.taillim == 0:
-            a = 5e5*err
+            a = -5e4*err
         else:
-            a = -200*np.sign(self.tailtheta)
+            a = -5*np.sign(self.tailtheta)
         v = self.tailv_old + a*self.T_fixed; self.tailv_old = v
-        x = self.tailtheta + v*self.T_fixed; self.tailtheta = x
+        x = self.tailtheta + v*self.T_fixed; 
         #print(err)
         theta = x
         
-        
-        if abs(theta) > 40*np.pi/180:
-            theta = 40*np.pi/180*np.sign(theta)
-            self.taillim = 1
-            self.tailv_old = 0
-        
-        if abs(theta) < 0.01:
-            self.taillim = 0
-            self.tailv_old = 0
-            print('Centre')
-            
+        actual = pb.getJointState(botId, 8, simID)[0]
+                
+        if abs(theta) >= 40*np.pi/180:
+            theta = 39*np.pi/180*np.sign(theta)
+            self.taillim += 1
+            if self.taillim == 1:
+                self.tailv_old = 0
+            if np.sign(theta) == np.sign(err):
+                self.taillim = 0
+             
             
         if self.tailmove == 0: theta = 0
-        
+        #print(actual*180/np.pi, theta*180/np.pi)
+        self.tailtheta = x
         return theta
     
     def runTailTest(self):
@@ -1461,7 +1461,9 @@ class dino3D():
         T = 0.5
         
         simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
-        
+        if log == 1:
+            logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "play_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
+
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
@@ -1489,12 +1491,8 @@ class dino3D():
             
                         
             angles = self.f4(-1, t, T, 1, botOrn)
-            angles[8] = self.controlTail(botId, simID)
+            angles[8] = self.controlTail(botId, simID, self.direction)
             
-            if i == 0:
-                if log == 1:
-                    logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "play_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
-                    
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
                                              targetVelocities = [0]*9,
@@ -1534,6 +1532,15 @@ class dino3D():
                 T += 0.1
                 kp = i
                 print(T)
+            elif keyboard.is_pressed('a') and i-10 >= kp:
+                self.direction += 5*np.pi/180
+                kp = i
+                print("Direction = {:g}*".format(self.direction*180/np.pi))
+            elif keyboard.is_pressed('d') and i-10 >= kp:
+                self.direction -= 5*np.pi/180
+                kp = i
+                print("Direction = {:g}*".format(self.direction*180/np.pi))
+                
             elif keyboard.is_pressed('backspace') and i-100 >= kp:
                 self.stabilisexz = 1 - self.stabilisexz  
                 print("Stabilisexz = {:d}".format(self.stabilisexz))
