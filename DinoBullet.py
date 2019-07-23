@@ -52,7 +52,7 @@ class dino3D():
         
         self.order = 4
         
-        self.tailmove = 0
+        self.tailmove = 1
         
         self.SL = 1.5
         rd.seed()
@@ -420,7 +420,9 @@ class dino3D():
 
             self.bestfit = 0
             self.best = self.population[0]
-
+            
+        self.means = []
+        
         for ep in range(epochs):
             self.epochnum = ep
             print("Epoch {:d}".format(ep))
@@ -447,6 +449,7 @@ class dino3D():
             #print("\nIn fit, {:.3f}".format(self.elites[-1][0][0]))
             #tracker.print_diff()
             gc.collect()
+            self.means.append(np.mean(fitnesses))
             
         self.Disconnect()
         self.showBestStanding()
@@ -725,15 +728,11 @@ class dino3D():
                 pencon += self.penConsts(cid = simID, botID = botId)
 
                 botAngles = np.array(pb.getEulerFromQuaternion(botOrn))%(2*np.pi)*180/np.pi
-                if botAngles[0] < 150 and botAngles[0] > 30:
-                    OrnFit = 0#100000
-                else:
-                    OrnFit = 0#-10000
             
                 if botAngles[2] > 270 or botAngles[2] < 90:
                     OrnFit += 1
                     
-        fit = (t/self.T_fixed)*1000000 + botPos[0] * 25000000 + speed*10000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*1000000 + (3.5-T)*10000000 + botPos[0] * 25000000 + speed*100000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -763,6 +762,7 @@ class dino3D():
             self.generateWalk()
             self.bestfit = 0
             self.best = self.population[0]
+        self.means = []
         
         for ep in range(epochs):
             print("Epoch {:d}".format(ep))
@@ -778,6 +778,7 @@ class dino3D():
             with open('elites.dat', 'rb') as f:
                         [self.elites] = pickle.load(f)
             gc.collect()
+            self.means.append(np.mean(self.fitnesses))
             
         pb.disconnect()
     
@@ -802,7 +803,7 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
         if T>3.5: T=3.5
         #print(T)
         #T = 2
@@ -1046,29 +1047,6 @@ class dino3D():
         #print(best_vars)
         #self.k_p = best_vars[0]; self.k_i = best_vars[1]
         
-    def controlTailOld(self, botId=0, simID=0, setpoint = 0):
-        ''' Control tail using PI - error based on rotational angle of body '''
-        k_p = self.k_p
-        k_i = self.k_i
-        
-        botPos, botOrn = pb.getBasePositionAndOrientation(botId)
-        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
-        
-        self.i_int += err
-        if abs(self.i_int >= 5*np.pi/180):
-            self.i_int = np.sign(self.i_int)*5*np.pi/180
-        
-        k_p = 0.5
-        theta = k_p*err + k_i*self.i_int
-        
-        
-        if abs(theta) > 20:
-            theta = 20*np.sign(theta)
-            
-        if self.tailmove == 0: theta = 0
-        
-        return theta
-    
     def controlTail(self, botId=0, simID=0, setpoint = 0):
         ''' Plan a trajectory for the tail to correct rotations '''
         I_t = 0.0002287386434001984 #kg.m^2
@@ -1082,12 +1060,15 @@ class dino3D():
         if self.taillim == 0:
             a = -5e4*err
         else:
-            a = -5*np.sign(self.tailtheta)
+            a = -50*np.sign(self.tailtheta)
         v = self.tailv_old + a*self.T_fixed; self.tailv_old = v
         x = self.tailtheta + v*self.T_fixed; 
         #print(err)
         theta = x
         
+        if abs(err) < 10*np.pi/180: # Don't act on small errors
+            theta = self.tailtheta
+            
         actual = pb.getJointState(botId, 8, simID)[0]
                 
         if abs(theta) >= 40*np.pi/180:
@@ -1435,15 +1416,15 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'ActualWalking.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
         self.saveload(1,files[num])
 
-    def playControl(self, log=0):
+    def playControl(self, log=0, num = -1):
         ''' Play with the dinosaur '''
-        self.loadInWalk()
+        self.loadInWalk(num)
         
         self.Disconnect()
         self.RunSRV(1)
@@ -1532,11 +1513,11 @@ class dino3D():
                 kp = i
                 print(T)
             elif keyboard.is_pressed('a') and i-10 >= kp:
-                self.direction += 5*np.pi/180
+                self.direction += 45*np.pi/180
                 kp = i
                 print("Direction = {:g}*".format(self.direction*180/np.pi))
             elif keyboard.is_pressed('d') and i-10 >= kp:
-                self.direction -= 5*np.pi/180
+                self.direction -= 45*np.pi/180
                 kp = i
                 print("Direction = {:g}*".format(self.direction*180/np.pi))
                 
