@@ -53,6 +53,7 @@ class dino3D():
         self.order = 4
         
         self.tailmove = 0
+        
         self.SL = 1.5
         rd.seed()
     
@@ -126,6 +127,11 @@ class dino3D():
         
         self.prev_rots = [0,0,0,0,0,0,0,0,0,0]
         self.acc_rots = [0,0,0,0,0,0,0,0,0,0]
+        
+        self.tailtheta = 0
+        self.tailv_old = 0
+        self.tailacc = 0
+        self.taillim = 0
         
         botID = pb.loadURDF("./Model/FootUtahBody.SLDASM.urdf",self.botStartPos, #./Model/FootUtahBody.SLDASM.urdf ./Model/Repaired/urdf/Repaired.urdf
                                  botStartOrientation, physicsClientId = cid,
@@ -1039,8 +1045,8 @@ class dino3D():
                         
         #print(best_vars)
         #self.k_p = best_vars[0]; self.k_i = best_vars[1]
-
-    def controlTail(self, botId=0, simID=0, setpoint = 0):
+        
+    def controlTailOld(self, botId=0, simID=0, setpoint = 0):
         ''' Control tail using PI - error based on rotational angle of body '''
         k_p = self.k_p
         k_i = self.k_i
@@ -1058,6 +1064,41 @@ class dino3D():
         
         if abs(theta) > 20:
             theta = 20*np.sign(theta)
+            
+        if self.tailmove == 0: theta = 0
+        
+        return theta
+    
+    def controlTail(self, botId=0, simID=0, setpoint = 0):
+        ''' Plan a trajectory for the tail to correct rotations '''
+        I_t = 0.0002287386434001984 #kg.m^2
+        T_lim = 0.9
+        acc_lim = T_lim/I_t # Like 4000 rad.s^-1
+        
+        botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint
+        
+        #let
+        if self.taillim == 0:
+            a = 5e5*err
+        else:
+            a = -200*np.sign(self.tailtheta)
+        v = self.tailv_old + a*self.T_fixed; self.tailv_old = v
+        x = self.tailtheta + v*self.T_fixed; self.tailtheta = x
+        #print(err)
+        theta = x
+        
+        
+        if abs(theta) > 40*np.pi/180:
+            theta = 40*np.pi/180*np.sign(theta)
+            self.taillim = 1
+            self.tailv_old = 0
+        
+        if abs(theta) < 0.01:
+            self.taillim = 0
+            self.tailv_old = 0
+            print('Centre')
+            
             
         if self.tailmove == 0: theta = 0
         
@@ -1401,6 +1442,135 @@ class dino3D():
         #self.saveload(1,'ScaledWalk.dat')
         self.saveload(1,files[num])
 
+    def playControl(self, log=0):
+        ''' Play with the dinosaur '''
+        self.loadInWalk()
+        
+        self.Disconnect()
+        self.RunSRV(1)
+        time.sleep(1)
+        now = datetime.now()
+        self.dynAccOn = 0
+        
+        legt0 = self.elites[-1][0]
+        legamp = self.elites[-1][1]
+        legamp2 = self.elites[-1][3]
+        legamp3 = self.elites[-1][5]
+        legamp4 = self.elites[-1][7]
+        
+        T = 0.5
+        
+        simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
+        
+        botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+        footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+        
+        T = abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
+        if T>3.5: T=3.5
+        
+        #print(T)
+        T = 2
+        self.Torques = []
+        
+        kp = 0 # Keypress - prevent bounce
+        camCTRL = 0
+        
+        while pb.getBaseVelocity(botId)[0][1] < 0:
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            print(pb.getBaseVelocity(botId)[0][1])
+
+        while(kp == 0):
+            self.Step(steps = 1, sleep = 0, cid=simID, botID=botId)
+            if keyboard.is_pressed('1'):
+                kp = 1
+            
+        for i in range(10000000):
+            t = float(i)*(self.T_fixed)
+            
+                        
+            angles = self.f4(-1, t, T, 1, botOrn)
+            angles[8] = self.controlTail(botId, simID)
+            
+            if i == 0:
+                if log == 1:
+                    logID = pb.startStateLogging(loggingType=pb.STATE_LOGGING_VIDEO_MP4, fileName = "play_{}.mp4".format(now.strftime("%m%d%Y_%H.%M.%S")))  
+                    
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                             targetPositions=angles, 
+                                             targetVelocities = [0]*9,
+                                             forces = [self.maxforce]*9,
+                                             physicsClientId = simID)
+            
+            self.Step(steps = 1, sleep = 1, cid=simID, botID=botId)
+            if camCTRL == 0:
+                self.AdjustCamera(botID = botId, cid = simID)
+            
+            torques = []
+            for j in range(9):
+                tmp, tmp, tmp, t = pb.getJointState(botId, j)
+                torques.append(t)
+            self.Torques.append(torques)
+            
+            footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
+            botPos, botOrn = pb.getBasePositionAndOrientation(botId)
+            
+            if self.stabilisexz == 1:
+                botVel, botAng = pb.getBaseVelocity(botId, simID)
+                
+                bb = np.array(pb.getEulerFromQuaternion(botOrn))
+                bb[2] = 0
+                bb = pb.getQuaternionFromEuler(bb)
+                pb.resetBasePositionAndOrientation(botId, botPos, bb, simID)
+                pb.resetBaseVelocity(botId, botVel, botAng, simID)
+            
+            if botPos[2] < self.scale*0.6 or botPos[2] > self.scale*2 or footLoc > botPos[2]:
+                break           
+           
+            if keyboard.is_pressed('w') and i-10 >= kp:
+                T -= 0.1
+                kp = i
+                print(T)
+            elif keyboard.is_pressed('s') and i-10 >= kp:
+                T += 0.1
+                kp = i
+                print(T)
+            elif keyboard.is_pressed('backspace') and i-100 >= kp:
+                self.stabilisexz = 1 - self.stabilisexz  
+                print("Stabilisexz = {:d}".format(self.stabilisexz))
+                kp = i
+            elif keyboard.is_pressed('c') and i-10 >= kp:
+                camCTRL = 1 - camCTRL
+                print("camCTRL = {:d}".format(camCTRL))
+                kp = i
+            elif keyboard.is_pressed('t') and i-10 >= kp:
+                self.tailmove = 1 - self.tailmove
+                print("Tailmove = {:d}".format(self.tailmove))
+                kp = i
+            elif keyboard.is_pressed('return'):
+                break
+            
+                
+        if log == 1:    
+            pb.stopStateLogging(loggingId = logID) 
+        
+        plt.figure()
+        ax = plt.plot(np.array(self.Torques)[:,4:])
+        plt.legend(['Femur', 'Tibia', 'Tarsa', 'Foot', 'Tail'])
+        plt.grid()
+        
+        print(T)
+       
+        plt.figure()
+        x = []
+        for i in range(100):
+            x.append(i*T/100)
+        #x = [i*T/100 for i in range(100)]
+        y = np.array([r.f4(-1, i*3.5/100, 3.5, 1) for i in range(100)])*180/np.pi
+        
+        plt.plot(x,y[:,0], x, y[:,1], x, y[:,2]-133, x, y[:,3]-168)
+        plt.grid()
+        plt.xlim([0, T])
+        plt.legend(['Femur', 'Tibia', 'Tarsa', 'Foot'])
           
     '''
     Notes:
