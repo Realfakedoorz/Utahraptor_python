@@ -1416,7 +1416,7 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat', 'Walking1.dat', 'Walking1a.dat', 'Walking2.dat', 'Running1.dat', 'Running2.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat', 'Walking1.dat', 'Walking1a.dat', 'Walking2.dat', 'Running1.dat', 'Running2.dat', 'Walking300_1.dat', 'Running300_1.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
