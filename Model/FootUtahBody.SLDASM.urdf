@@ -269,7 +269,7 @@
       link="Foot_L" />
     <axis
       xyz="0 0 0.999999999999996" />
-    <limit effort="2" velocity="0.17453292519943295" />
+    <limit effort="20" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>
@@ -497,7 +497,7 @@
       link="Foot_R" />
     <axis
       xyz="0 0 -0.999999999999996" />
-    <limit effort="2" velocity="0.17453292519943295" />
+    <limit effort="20" velocity="0.17453292519943295" />
     <safety_controller
       k_velocity="0" />
   </joint>

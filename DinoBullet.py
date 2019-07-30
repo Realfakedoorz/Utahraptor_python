@@ -26,7 +26,7 @@ import keyboard
 class dino3D():
     def __init__(self):
         ''' pyBullet params '''
-        self.T_fixed = 1./240
+        self.T_fixed = 1./100
         self.SHARED_SRV_FILE = r"C:\bullet3\bin\App_PhysicsServer_SharedMemory_vs2010_x64_release.exe"
         self.SHARED_GUI_FILE = r"C:\bullet3\bin\App_PhysicsServer_SharedMemory_GUI_vs2010_x64_release.exe"
         self.init = 0
@@ -449,7 +449,7 @@ class dino3D():
             #print("\nIn fit, {:.3f}".format(self.elites[-1][0][0]))
             #tracker.print_diff()
             gc.collect()
-            self.means.append(np.mean(fitnesses))
+            self.means.append(np.mean(self.fitnesses))
             
         self.Disconnect()
         self.showBestStanding()
@@ -660,7 +660,7 @@ class dino3D():
         #offSet = self.popBodyOffsets[popNum]
         T = 0.7
         
-        simID,botId = self.setStanding(simtype = pb.DIRECT, num=6)
+        simID,botId = self.setStanding(simtype = pb.DIRECT, num=8)
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
@@ -732,7 +732,7 @@ class dino3D():
                 if botAngles[2] > 270 or botAngles[2] < 90:
                     OrnFit += 1
                     
-        fit = (t/self.T_fixed)*1000000 + (3.5-T)*10000000 + botPos[0] * 25000000 + speed*100000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
+        fit = (t/self.T_fixed)*1000000 + (3.5-T)*10000000 + botPos[0] * 250000000 + speed*100000 + OrnFit*100 - ZMPdist*100000#- 10000*botPos[1]
         if fit > 0:
             self.fitnesses[popNum] = fit
         else:
@@ -798,7 +798,7 @@ class dino3D():
         
         T = 0.5
         
-        simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=6)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
+        simID,botId = self.setStanding(simtype = pb.SHARED_MEMORY, num=8)#simID, botId = self.setStanding(simtype = pb.DIRECT, num = 3, anglesset = angles, height = heightDiff)
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
@@ -958,16 +958,7 @@ class dino3D():
         elif self.order == 4:
             angles = (f0+f1+f2+f3+f4)*np.pi/180
            
-                
-        #angles[2] = 133*np.pi/180
-        #angles[6] = -angles[2]
-        
-        #angles[3] = 303*np.pi/180 - (30*np.pi/180 + angles[0] + angles[1] + angles[2])
-        #angles[7] = -angles[3]
-        
-        #angles[3] = 5.29929738517979 - (pb.getEulerFromQuaternion(botOrn)[1] + angles[0] + angles[1] + angles[2])
-        #angles[7] = -angles[3]
-        
+ 
         return angles
     
     def ZMP(self, botID, simID):
@@ -1054,7 +1045,7 @@ class dino3D():
         acc_lim = T_lim/I_t # Like 4000 rad.s^-1
         
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
-        err = pb.getEulerFromQuaternion(botOrn)[2] - setpoint%2*np.pi
+        err = (pb.getEulerFromQuaternion(botOrn)[2] - setpoint)
         
         #let
         if self.taillim == 0:
@@ -1065,12 +1056,11 @@ class dino3D():
         x = self.tailtheta + v*self.T_fixed; 
         #print(err)
         theta = x
-        
-        if abs(err) < 30*np.pi/180: # Don't act on small errors
+        if abs(err) < 15*np.pi/180: # Don't act on small errors
+            print(err)
             theta = self.tailtheta
-            
-        actual = pb.getJointState(botId, 8, simID)[0]
-                
+            x= theta
+                            
         if abs(theta) >= 40*np.pi/180:
             theta = 39*np.pi/180*np.sign(theta)
             self.taillim += 1
@@ -1233,6 +1223,20 @@ class dino3D():
                                          physicsClientId = cid)
             pb.resetBaseVelocity(objectUniqueId = botId, physicsClientId = cid, linearVelocity = [0,0,0], angularVelocity= [0,0,0])
 
+        elif num == 8:
+            self.botStartPos = self.scale*np.array([0.008122401502023714, 0.00022747351081286866, 1.3901162942408427])
+            botOrn = [0.0, 0.03489949670250097, 0.0, 0.9993908270190958]
+            angles = np.array([ -10.,  -33.,  197.,  122.,  -10.,   33., -197., -122.,    0.])*np.pi/180
+            
+            cid, botId = self.Init(botOrn, pb_type = simtype)
+            self.setLegs(angles, sleep = 0, botID = botId, cid = cid)
+            
+            self.AdjustCamera(botID = botId, cid = cid)
+            pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
+                                         targetPositions=angles, 
+                                         targetVelocities = [0]*9,
+                                         forces = [999999]*9,
+                                         physicsClientId = cid)
         
         self.botStartPos = ([0,0,2])
         return cid, botId
@@ -1287,7 +1291,7 @@ class dino3D():
         yaw = 0
         roll = 0
         upAxisIndex = 2
-        camDistance = 2
+        camDistance = 2*self.scale
         pixelWidth = 640
         pixelHeight = 400
         nearPlane = 0.01
@@ -1416,7 +1420,7 @@ class dino3D():
      
     def loadInWalk(self, num = -1):
         ''' Load in current best found parameter set '''
-        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat', 'Walking1.dat', 'Walking1a.dat', 'Walking2.dat', 'Running1.dat', 'Running2.dat', 'Walking300_1.dat', 'Running300_1.dat']
+        files = ['TestTailAgainst.dat', 'TestA.dat', 'ScaledWalk.dat', 'notmovingmuch.dat', 'WeirdButLong.dat', 'TestB.dat', 'TestC.dat', 'Fucked.dat', 'ActualWalking.dat', 'Hmm.dat', 'Promising.dat', 'continue_me.dat', 'Walking1.dat', 'Walking1a.dat', 'Walking2.dat', 'Running1.dat', 'Running2.dat', 'Walking300_1.dat', 'Running300_1.dat', 'Walking100_2.dat', 'Running100_2.dat', 'prettygood.dat', 'Standing8.dat']
         #self.saveload(1, 'TestTailAgainst.dat')     
         #self.saveload(1,'TestA.dat')
         #self.saveload(1,'ScaledWalk.dat')
@@ -1447,11 +1451,13 @@ class dino3D():
         botPos, botOrn = pb.getBasePositionAndOrientation(botId)
         footLoc = pb.getLinkState(botId, linkIndex=3)[0][2]
         
-        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))        
-        if T>2.3: T=2.3
+        T = 1/abs(self.scale*self.SL/(2*self.fkine([ legt0[0]+legamp[0]+legamp2[0]+legamp3[0], legt0[1]+legamp[1]+legamp2[1]+legamp3[1], legt0[2]+legamp[2]+legamp2[2]+legamp3[2], legt0[3]+legamp[3]+legamp2[3]+legamp3[3] ])[2][0]/1000))
+        if T>2.3: T=1.6
+        if T<0.6: T = 2.3
         
-        #print(T)
-        #T = 1.8
+        print(T)
+        print(simID, botId)
+        #T = 0.829195
         self.Torques = []
         
         kp = 0 # Keypress - prevent bounce
@@ -1473,6 +1479,7 @@ class dino3D():
             angles = self.f4(-1, t, T, 1, botOrn)
             angles[8] = self.controlTail(botId, simID, self.direction)
             
+            #angles[7] = -angles[3]
             pb.setJointMotorControlArray(botId, range(9), controlMode = pb.POSITION_CONTROL, 
                                              targetPositions=angles, 
                                              targetVelocities = [0]*9,
